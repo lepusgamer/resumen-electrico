@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1d5cc0">
+<title>Asistente Inspector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+:root {
+  --bg: #eef2f4; --surface: #ffffff; --sunken: #e3e9ed; --ink: #15212b; --muted: #566571; --line: #cfd8de;
+  --accent: #1d5cc0; --accent-soft: rgba(29,92,192,.10);
+  --bad: #c2352c; --bad-soft: rgba(194,53,44,.11);
+  --warn: #a8690b; --warn-soft: rgba(168,105,11,.13);
+  --ok: #1c8a4c; --ok-soft: rgba(28,138,76,.12);
+  --f-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d141a; --surface: #141e26; --sunken: #1b2731; --ink: #e2e9ee; --muted: #9babb6; --line: #2b3a45;
+    --accent: #6ea6ff; --accent-soft: rgba(110,166,255,.14);
+    --bad: #ff6f64; --bad-soft: rgba(255,111,100,.15); --warn: #e3aa4c; --warn-soft: rgba(227,170,76,.15);
+    --ok: #4dc98a; --ok-soft: rgba(77,201,138,.15); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d141a; --surface: #141e26; --sunken: #1b2731; --ink: #e2e9ee; --muted: #9babb6; --line: #2b3a45;
+  --accent: #6ea6ff; --accent-soft: rgba(110,166,255,.14);
+  --bad: #ff6f64; --bad-soft: rgba(255,111,100,.15); --warn: #e3aa4c; --warn-soft: rgba(227,170,76,.15);
+  --ok: #4dc98a; --ok-soft: rgba(77,201,138,.15); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--f-body);
+  padding: 0 max(16px, env(safe-area-inset-right)) 80px max(16px, env(safe-area-inset-left)); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1180px; margin: 0 auto; }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0 8px; flex-wrap: wrap; }
+h1 { font: 700 1.6rem/1.1 var(--f-display); letter-spacing: .02em; margin: 0; text-transform: uppercase; }
+h1 small { display: block; font: 400 .8rem var(--f-body); color: var(--muted); text-transform: none; letter-spacing: 0; }
+h2 { font: 600 1.25rem/1.2 var(--f-display); text-transform: uppercase; letter-spacing: .03em; margin: 24px 0 10px; }
+h3 { font: 600 1.05rem/1.2 var(--f-display); margin: 0; letter-spacing: .02em; }
+.clock { font-family: var(--f-mono); color: var(--muted); font-size: .9rem; }
+nav.tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--line); margin-bottom: 8px; position: sticky; top: 0; background: var(--bg); z-index: 5; scrollbar-width: none; }
+nav.tabs button { border: 0; background: none; padding: 10px 14px; cursor: pointer; font: 600 1rem var(--f-display); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); border-bottom: 3px solid transparent; white-space: nowrap; }
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.badge { display: inline-block; min-width: 1.4em; padding: 0 .4em; border-radius: 99px; background: var(--bad); color: #fff; font: 600 .75rem/1.4 var(--f-body); text-align: center; margin-left: 4px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; cursor: pointer; font-weight: 700; font-size: .9rem; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--ink); }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+:root[data-theme="dark"] .btn.primary { color: #0d141a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #0d141a; } }
+.btn.small { padding: 4px 9px; font-size: .8rem; }
+.btn.danger { color: var(--bad); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.spacer { flex: 1; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; text-align: left; }
+.kpi b { display: block; font: 700 2rem/1 var(--f-display); }
+.kpi span { color: var(--muted); font-size: .85rem; }
+.kpi.bad b { color: var(--bad); } .kpi.warn b { color: var(--warn); } .kpi.ok b { color: var(--ok); }
+.list { display: grid; gap: 8px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.ot { display: grid; grid-template-columns: 6px 1fr auto; gap: 12px; align-items: start; cursor: pointer; }
+.ot .stripe { align-self: stretch; border-radius: 3px; }
+.ot .num { font: 600 .95rem var(--f-mono); }
+.ot .desc { margin: 2px 0 4px; }
+.meta { color: var(--muted); font-size: .85rem; display: flex; gap: 4px 14px; flex-wrap: wrap; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: .75rem; font-weight: 700; border: 1px solid transparent; white-space: nowrap; }
+.st-planificada { background: var(--accent-soft); color: var(--accent); }
+.st-ejecucion { background: var(--ok-soft); color: var(--ok); }
+.st-detenida { background: var(--warn-soft); color: var(--warn); }
+.st-terminada { background: var(--sunken); color: var(--ink); border-color: var(--line); }
+.st-recepcionada { background: var(--sunken); color: var(--muted); }
+.pr-alta { color: var(--bad); border-color: var(--bad); }
+.pr-media { color: var(--warn); border-color: var(--warn); }
+.pr-baja { color: var(--muted); border-color: var(--line); }
+.alert { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); cursor: pointer; }
+.alert .ic { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: .9rem; }
+.alert.bad { border-left: 4px solid var(--bad); } .alert.bad .ic { background: var(--bad-soft); color: var(--bad); }
+.alert.warn { border-left: 4px solid var(--warn); } .alert.warn .ic { background: var(--warn-soft); color: var(--warn); }
+.alert.info { border-left: 4px solid var(--accent); } .alert.info .ic { background: var(--accent-soft); color: var(--accent); }
+.alert small { color: var(--muted); display: block; }
+.when { font: 600 .85rem var(--f-mono); white-space: nowrap; text-align: right; }
+.empty { color: var(--muted); padding: 16px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius); }
+.filters { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 8px; margin: 8px 0 12px; }
+@media (max-width: 720px) { .filters { grid-template-columns: 1fr 1fr; } .filters .search { grid-column: 1 / -1; } }
+input, select, textarea { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; min-width: 0; }
+textarea { resize: vertical; }
+label { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); font-weight: 700; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+/* Calendario */
+.calhead { display: flex; align-items: center; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+.calhead .title { font: 700 1.3rem var(--f-display); min-width: 170px; }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.cal .dow { background: var(--sunken); text-align: center; font: 600 .8rem var(--f-display); text-transform: uppercase; padding: 4px; color: var(--muted); }
+.cal .day { background: var(--surface); min-height: 96px; padding: 4px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; overflow: hidden; border: 0; text-align: left; }
+.cal .day.out { opacity: .45; }
+.cal .day.today .dn { background: var(--accent); color: #fff; border-radius: 99px; }
+.cal .day.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+.cal .dn { font: 600 .8rem var(--f-mono); padding: 0 5px; align-self: flex-start; }
+.chip { font-size: .72rem; line-height: 1.3; padding: 1px 4px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+.chip.late { outline: 2px solid var(--bad); outline-offset: -2px; }
+.more { font-size: .7rem; color: var(--muted); }
+@media (max-width: 640px) {
+  .cal .day { min-height: 54px; flex-direction: row; flex-wrap: wrap; align-content: flex-start; }
+  .cal .dn { width: 100%; }
+  .chip { width: 9px; height: 9px; padding: 0; border-radius: 50%; font-size: 0; }
+  .more { display: none; }
+}
+.legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: .85rem; margin: 8px 0; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+/* Carga brigadas */
+.load { display: grid; grid-template-columns: minmax(110px, 180px) repeat(14, minmax(0, 1fr)); gap: 2px; font-size: .75rem; align-items: stretch; overflow-x: auto; }
+.load .h { text-align: center; color: var(--muted); font-family: var(--f-mono); padding: 2px 0; line-height: 1.2; }
+.load .h.we { color: var(--bad); }
+.load .name { padding: 6px 4px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.load .c { border-radius: 4px; background: var(--sunken); display: grid; place-items: center; font: 600 .75rem var(--f-mono); min-height: 28px; }
+.load .c.n1 { color: #fff; }
+.load .c.n2 { background: var(--bad) !important; color: #fff; }
+dialog { border: 1px solid var(--line); border-radius: 14px; padding: 0; width: min(680px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); background: var(--surface); color: var(--ink); }
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog form { padding: 18px; display: grid; gap: 12px; }
+.dlg-head { display: flex; align-items: center; gap: 8px; }
+.dlg-head h3 { flex: 1; font-size: 1.3rem; }
+.log { display: grid; gap: 6px; max-height: 200px; overflow: auto; }
+.log div { font-size: .85rem; border-left: 3px solid var(--line); padding-left: 8px; }
+.log time { font-family: var(--f-mono); color: var(--muted); font-size: .75rem; display: block; }
+.toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 700; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100vw - 32px); }
+.toast.show { opacity: 1; }
+.fab { position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); width: 56px; height: 56px; border-radius: 50%; font-size: 1.8rem; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 10; }
+.progress { height: 6px; background: var(--sunken); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.progress i { display: block; height: 100%; background: var(--ok); }
+.note { color: var(--muted); font-size: .85rem; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Asistente Inspector<small>Control de OT y brigadas contratistas</small></h1>
+    <div class="row">
+      <span class="clock" id="clock"></span>
+      <button class="btn small" id="themeBtn" title="Cambiar tema">◐</button>
+    </div>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-view="hoy" aria-selected="true">Hoy <span class="badge" id="alertBadge" hidden></span></button>
+    <button role="tab" data-view="ots">Órdenes de trabajo</button>
+    <button role="tab" data-view="cal">Calendario</button>
+    <button role="tab" data-view="brig">Brigadas</button>
+    <button role="tab" data-view="datos">Datos y avisos</button>
+  </nav>
+
+  <section id="v-hoy"></section>
+  <section id="v-ots" hidden>
+    <div class="filters">
+      <input class="search" id="fText" type="search" placeholder="Buscar OT, descripción, sector…">
+      <select id="fEstado"></select>
+      <select id="fBrig"></select>
+      <select id="fSector"></select>
+    </div>
+    <div class="list" id="otList"></div>
+  </section>
+  <section id="v-cal" hidden>
+    <div class="calhead">
+      <button class="btn small" id="calPrev" aria-label="Mes anterior">‹</button>
+      <span class="title" id="calTitle"></span>
+      <button class="btn small" id="calNext" aria-label="Mes siguiente">›</button>
+      <button class="btn small" id="calToday">Hoy</button>
+      <span class="spacer"></span>
+      <select id="calBrig" style="width:auto"></select>
+    </div>
+    <div class="cal" id="cal"></div>
+    <div class="legend" id="calLegend"></div>
+    <h2 id="dayTitle"></h2>
+    <div class="list" id="dayList"></div>
+  </section>
+  <section id="v-brig" hidden>
+    <div class="row"><h2 style="flex:1">Carga próximos 14 días</h2></div>
+    <p class="note">Cada casilla muestra cuántas OT tiene la brigada ese día. En rojo: dos o más OT al mismo tiempo (posible sobrecarga o error de planificación).</p>
+    <div class="card"><div class="load" id="load"></div></div>
+    <div class="row"><h2 style="flex:1">Brigadas</h2><button class="btn primary" id="addBrig">+ Brigada</button></div>
+    <div class="list" id="brigList"></div>
+  </section>
+  <section id="v-datos" hidden></section>
+</div>
+
+<button class="btn primary fab" id="fab" title="Nueva OT" aria-label="Nueva OT">+</button>
+
+<dialog id="dlgOT"><form method="dialog" id="fOT"></form></dialog>
+<dialog id="dlgBrig"><form method="dialog" id="fBrigForm"></form></dialog>
+<dialog id="dlgImport"><form method="dialog" id="fImport"></form></dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ======================= Datos ======================= */
+const KEY = "inspector-mant-v1";
+const ESTADOS = [
+  ["planificada", "Planificada"], ["ejecucion", "En ejecución"], ["detenida", "Detenida"],
+  ["terminada", "Terminada (por recepcionar)"], ["recepcionada", "Recepcionada / cerrada"]
+];
+const EST_LABEL = Object.fromEntries(ESTADOS.map(([k, v]) => [k, v.replace(/ \(.*/, "")]));
+const ACTIVA = e => e === "planificada" || e === "ejecucion" || e === "detenida";
+const COLORS = ["#1d5cc0", "#c2352c", "#1c8a4c", "#8a4fd0", "#d07a12", "#0f8a94", "#b0307a", "#5a6b2a"];
+const DEF_AJUSTES = { horasVence: 24, diasInicio: 2, diasRecepcion: 2, notif: false };
+
+let S = load();
+function blank() { return { brigadas: [], ots: [], ajustes: { ...DEF_AJUSTES }, avisados: {} }; }
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { const d = JSON.parse(raw); d.ajustes = { ...DEF_AJUSTES, ...(d.ajustes || {}) }; d.avisados = d.avisados || {}; return d; }
+  } catch (e) {}
+  return blank();
+}
+function persist() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); return true; }
+  catch (e) { toast("No se pudo guardar en este navegador. Exporta un respaldo."); return false; }
+}
+function save() { persist(); renderAll(); }
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const brigById = id => S.brigadas.find(b => b.id === id);
+const otById = id => S.ots.find(o => o.id === id);
+
+/* ======================= Utilidades ======================= */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const D = s => s ? new Date(s) : null;
+const pad = n => String(n).padStart(2, "0");
+const toLocalInput = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const fmtDT = new Intl.DateTimeFormat("es-CL", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const fmtD = new Intl.DateTimeFormat("es-CL", { weekday: "short", day: "numeric", month: "short" });
+const fmtLong = new Intl.DateTimeFormat("es-CL", { weekday: "long", day: "numeric", month: "long" });
+const fmtMonth = new Intl.DateTimeFormat("es-CL", { month: "long", year: "numeric" });
+const fdt = s => s ? fmtDT.format(D(s)) : "—";
+function dur(ms) {
+  ms = Math.abs(ms); const m = Math.round(ms / 60000);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60); if (h < 48) return `${h} h${m % 60 && h < 6 ? " " + (m % 60) + " min" : ""}`;
+  const d = Math.floor(h / 24), rh = h % 24; return `${d} d${rh ? " " + rh + " h" : ""}`;
+}
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600); }
+const sectores = () => [...new Set(S.ots.map(o => (o.sector || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+function overlaps(o, a, b) { const s = D(o.inicioPlan), e = D(o.finPlan) || s; return s && s < b && e >= a; }
+
+/* ======================= Alertas ======================= */
+function alertas(now = new Date()) {
+  const A = [], aj = S.ajustes, H = 3600e3;
+  for (const o of S.ots) {
+    const ini = D(o.inicioPlan), fin = D(o.finPlan), b = brigById(o.brigadaId);
+    const who = b ? b.nombre : "Sin brigada";
+    const base = { ot: o, who };
+    if (ACTIVA(o.estado) && fin && fin < now)
+      A.push({ ...base, sev: "bad", ic: "!", k: "atrasada", t: `Atrasada ${dur(now - fin)}`, sub: `Debía terminar ${fdt(o.finPlan)}`, when: -1e15 + fin.getTime() });
+    else if (ACTIVA(o.estado) && fin && fin - now <= aj.horasVence * H)
+      A.push({ ...base, sev: "warn", ic: "⏱", k: "vence", t: `Vence en ${dur(fin - now)}`, sub: `Término plan ${fdt(o.finPlan)}`, when: fin.getTime() });
+    if (o.estado === "planificada" && ini && ini < now)
+      A.push({ ...base, sev: "bad", ic: "▶", k: "noinicia", t: `No ha iniciado (debió hace ${dur(now - ini)})`, sub: `Inicio plan ${fdt(o.inicioPlan)}`, when: -1e15 + ini.getTime() });
+    else if (o.estado === "planificada" && ini && ini - now <= aj.diasInicio * 24 * H)
+      A.push({ ...base, sev: "info", ic: "→", k: "inicia", t: `Inicia en ${dur(ini - now)}`, sub: `Inicio plan ${fdt(o.inicioPlan)}`, when: ini.getTime() });
+    if (o.estado === "detenida") {
+      const last = (o.bitacora || []).slice(-1)[0];
+      A.push({ ...base, sev: "warn", ic: "‖", k: "detenida", t: "Trabajo detenido", sub: last ? last.txt : "Registra el motivo en la bitácora", when: 0 });
+    }
+    if (o.estado === "terminada") {
+      const f = D(o.finReal) || fin; const late = f && now - f > aj.diasRecepcion * 24 * H;
+      A.push({ ...base, sev: late ? "warn" : "info", ic: "✓", k: "recepcion", t: late ? `Pendiente recepción hace ${dur(now - f)}` : "Pendiente de recepción", sub: "Revisar en terreno y cerrar OT", when: 1e15 });
+    }
+  }
+  // Conflictos: brigada con OT activas que se solapan
+  for (const b of S.brigadas) {
+    const act = S.ots.filter(o => o.brigadaId === b.id && ACTIVA(o.estado) && o.inicioPlan && o.finPlan)
+      .sort((x, y) => D(x.inicioPlan) - D(y.inicioPlan));
+    for (let i = 0; i < act.length; i++) for (let j = i + 1; j < act.length; j++) {
+      if (D(act[j].inicioPlan) < D(act[i].finPlan) && D(act[i].finPlan) > now)
+        A.push({ ot: act[j], who: b.nombre, sev: "warn", ic: "⇄", k: "choque-" + act[i].id, t: `Choque de horario con OT ${act[i].numero}`, sub: `${b.nombre} tiene dos trabajos a la vez`, when: D(act[j].inicioPlan).getTime() });
+    }
+  }
+  const rank = { bad: 0, warn: 1, info: 2 };
+  return A.sort((a, b) => rank[a.sev] - rank[b.sev] || a.when - b.when);
+}
+
+/* ======================= Render: tarjetas ======================= */
+function otCard(o, extra = "") {
+  const b = brigById(o.brigadaId), color = b?.color || "var(--line)";
+  const late = ACTIVA(o.estado) && D(o.finPlan) && D(o.finPlan) < new Date();
+  const av = Number(o.avance) || 0;
+  return `<div class="card ot" data-ot="${o.id}" tabindex="0" role="button">
+    <span class="stripe" style="background:${esc(color)}"></span>
+    <div>
+      <div class="row" style="gap:6px"><span class="num">OT ${esc(o.numero)}</span>
+        <span class="pill st-${o.estado}">${EST_LABEL[o.estado]}</span>
+        ${o.prioridad ? `<span class="pill pr-${o.prioridad}">${o.prioridad[0].toUpperCase() + o.prioridad.slice(1)}</span>` : ""}
+        ${late ? `<span class="pill" style="background:var(--bad);color:#fff">Atrasada</span>` : ""}</div>
+      <div class="desc">${esc(o.descripcion) || '<span class="note">Sin descripción</span>'}</div>
+      <div class="meta"><span>📍 ${esc(o.sector) || "—"}</span><span>👷 ${esc(b?.nombre) || "Sin brigada"}</span>
+        <span>🗓 ${fdt(o.inicioPlan)} → ${fdt(o.finPlan)}</span>${extra}</div>
+      ${o.estado === "ejecucion" || av ? `<div class="progress" title="Avance ${av}%"><i style="width:${av}%"></i></div>` : ""}
+    </div>
+    <div class="row" style="flex-direction:column;align-items:flex-end">${quickBtn(o)}</div>
+  </div>`;
+}
+function quickBtn(o) {
+  const m = { planificada: ["ejecucion", "Iniciar"], ejecucion: ["terminada", "Terminar"], detenida: ["ejecucion", "Reanudar"], terminada: ["recepcionada", "Recepcionar"] }[o.estado];
+  return m ? `<button class="btn small" data-quick="${o.id}" data-to="${m[0]}">${m[1]}</button>` : "";
+}
+function alertRow(a) {
+  return `<div class="alert ${a.sev}" data-ot="${a.ot.id}" tabindex="0" role="button">
+    <span class="ic" aria-hidden="true">${a.ic}</span>
+    <div><b>OT ${esc(a.ot.numero)} · ${esc(a.t)}</b><small>${esc(a.ot.descripcion || "")} · ${esc(a.ot.sector || "—")} · ${esc(a.who)}</small><small>${esc(a.sub)}</small></div>
+    <span>${quickBtn(a.ot)}</span></div>`;
+}
+
+/* ======================= Vista Hoy ======================= */
+function renderHoy() {
+  const now = new Date(), A = alertas(now);
+  const act = S.ots.filter(o => ACTIVA(o.estado));
+  const t0 = startOfDay(now), t1 = addDays(t0, 1);
+  const hoy = act.filter(o => overlaps(o, t0, t1));
+  const prox = act.filter(o => D(o.inicioPlan) >= t1 && D(o.inicioPlan) < addDays(t0, 8)).sort((a, b) => D(a.inicioPlan) - D(b.inicioPlan));
+  const n = k => A.filter(a => a.k === k).length;
+  const el = document.getElementById("v-hoy");
+  if (!S.ots.length && !S.brigadas.length) {
+    el.innerHTML = `<h2>Bienvenido</h2><div class="card"><p>Aquí controlas las OT de tus brigadas contratistas: sector, fechas planificadas, estado y avance. La app te avisa cuando una OT está atrasada, por vencer, no ha iniciado a tiempo, o cuando una brigada tiene dos trabajos al mismo tiempo.</p>
+      <ol><li>Crea tus <b>brigadas</b> (pestaña Brigadas).</li><li>Ingresa las <b>OT</b> con el botón <b>+</b>, o pégalas desde Excel en <i>Datos y avisos</i>.</li><li>Activa los <b>avisos del navegador</b> y exporta el calendario a tu Google/Outlook.</li></ol>
+      <div class="row"><button class="btn primary" id="demoBtn">Cargar datos de ejemplo</button><button class="btn" data-go="brig">Crear brigadas</button></div></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <h2>${esc(fmtLong.format(now))}</h2>
+    <div class="kpis">
+      <button class="kpi" data-filter="activas"><b>${act.length}</b><span>OT activas</span></button>
+      <button class="kpi ok" data-filter="ejecucion"><b>${act.filter(o => o.estado === "ejecucion").length}</b><span>En ejecución</span></button>
+      <button class="kpi bad" data-filter="atrasadas"><b>${n("atrasada") + n("noinicia")}</b><span>Atrasadas / sin iniciar</span></button>
+      <button class="kpi warn" data-filter="vence"><b>${n("vence")}</b><span>Vencen en ≤ ${S.ajustes.horasVence} h</span></button>
+      <button class="kpi" data-filter="terminada"><b>${n("recepcion")}</b><span>Por recepcionar</span></button>
+    </div>
+    <h2>Alertas (${A.length})</h2>
+    <div class="list">${A.length ? A.map(alertRow).join("") : `<div class="empty">Sin alertas. Todo en orden ✔</div>`}</div>
+    <h2>En terreno hoy (${hoy.length})</h2>
+    <div class="list">${hoy.length ? hoy.sort((a, b) => (brigById(a.brigadaId)?.nombre || "").localeCompare(brigById(b.brigadaId)?.nombre || "")).map(o => otCard(o)).join("") : `<div class="empty">No hay OT planificadas para hoy.</div>`}</div>
+    <h2>Próximos 7 días (${prox.length})</h2>
+    <div class="list">${prox.length ? prox.map(o => otCard(o)).join("") : `<div class="empty">Nada programado.</div>`}</div>`;
+}
+
+/* ======================= Vista OTs ======================= */
+let otPreset = null;
+function fillFilters() {
+  const keep = id => document.getElementById(id).value;
+  const fe = keep("fEstado"), fb = keep("fBrig"), fs = keep("fSector");
+  document.getElementById("fEstado").innerHTML = `<option value="">Activas + por recepcionar</option><option value="todas">Todas</option>` + ESTADOS.map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  document.getElementById("fBrig").innerHTML = `<option value="">Todas las brigadas</option>` + S.brigadas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join("") + `<option value="_none">Sin brigada</option>`;
+  document.getElementById("fSector").innerHTML = `<option value="">Todos los sectores</option>` + sectores().map(s => `<option>${esc(s)}</option>`).join("");
+  document.getElementById("fEstado").value = fe; document.getElementById("fBrig").value = fb; document.getElementById("fSector").value = fs;
+  document.getElementById("calBrig").innerHTML = `<option value="">Todas las brigadas</option>` + S.brigadas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join("");
+  document.getElementById("calBrig").value = calBrig;
+}
+function renderOTs() {
+  const q = document.getElementById("fText").value.trim().toLowerCase();
+  const fe = document.getElementById("fEstado").value, fb = document.getElementById("fBrig").value, fs = document.getElementById("fSector").value;
+  const now = new Date();
+  let L = S.ots.filter(o => {
+    if (fe === "" && o.estado === "recepcionada") return false;
+    if (fe && fe !== "todas" && o.estado !== fe) return false;
+    if (fb === "_none" ? o.brigadaId : fb && o.brigadaId !== fb) return false;
+    if (fs && (o.sector || "").trim() !== fs) return false;
+    if (q && !`${o.numero} ${o.descripcion} ${o.sector} ${brigById(o.brigadaId)?.nombre || ""} ${o.notas || ""}`.toLowerCase().includes(q)) return false;
+    if (otPreset === "atrasadas") return ACTIVA(o.estado) && ((D(o.finPlan) && D(o.finPlan) < now) || (o.estado === "planificada" && D(o.inicioPlan) < now));
+    if (otPreset === "vence") return ACTIVA(o.estado) && D(o.finPlan) >= now && D(o.finPlan) - now <= S.ajustes.horasVence * 3600e3;
+    if (otPreset === "activas") return ACTIVA(o.estado);
+    return true;
+  }).sort((a, b) => (D(a.finPlan) || 0) - (D(b.finPlan) || 0));
+  const presetName = { atrasadas: "atrasadas / sin iniciar", vence: `que vencen en ≤ ${S.ajustes.horasVence} h`, activas: "activas" }[otPreset];
+  document.getElementById("otList").innerHTML =
+    (presetName ? `<div class="row note">Mostrando OT ${presetName} · <button class="btn small" id="clearPreset">Quitar filtro</button></div>` : "") +
+    `<div class="note">${L.length} OT</div>` +
+    (L.length ? L.map(o => otCard(o)).join("") : `<div class="empty">No hay OT con estos filtros.</div>`);
+}
+
+/* ======================= Calendario ======================= */
+let calMonth = startOfDay(new Date()); calMonth.setDate(1);
+let calSel = startOfDay(new Date()); let calBrig = "";
+function calOTs() { return S.ots.filter(o => o.estado !== "recepcionada" && (!calBrig || o.brigadaId === calBrig)); }
+function renderCal() {
+  const now = new Date(), y = calMonth.getFullYear(), m = calMonth.getMonth();
+  { const t = fmtMonth.format(calMonth); document.getElementById("calTitle").textContent = t[0].toUpperCase() + t.slice(1); }
+  const first = new Date(y, m, 1), off = (first.getDay() + 6) % 7, start = addDays(first, -off);
+  const L = calOTs();
+  let h = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map(d => `<div class="dow">${d}</div>`).join("");
+  for (let i = 0; i < 42; i++) {
+    const d = addDays(start, i), e = addDays(d, 1);
+    if (i === 35 && d.getMonth() !== m) break;
+    const its = L.filter(o => overlaps(o, d, e)).sort((a, b) => D(a.inicioPlan) - D(b.inicioPlan));
+    const cls = ["day", d.getMonth() !== m && "out", dayKey(d) === dayKey(now) && "today", dayKey(d) === dayKey(calSel) && "sel"].filter(Boolean).join(" ");
+    h += `<button class="${cls}" data-day="${dayKey(d)}" aria-label="${fmtLong.format(d)}, ${its.length} OT"><span class="dn">${d.getDate()}</span>` +
+      its.slice(0, 4).map(o => { const late = ACTIVA(o.estado) && D(o.finPlan) < now;
+        return `<span class="chip${late ? " late" : ""}" style="background:${esc(brigById(o.brigadaId)?.color || "#7a8791")}" title="OT ${esc(o.numero)} · ${esc(o.descripcion)}">${esc(o.numero)} ${esc(o.sector || "")}</span>`; }).join("") +
+      (its.length > 4 ? `<span class="more">+${its.length - 4} más</span>` : "") + `</button>`;
+  }
+  document.getElementById("cal").innerHTML = h;
+  document.getElementById("calLegend").innerHTML = S.brigadas.map(b => `<span><i style="background:${esc(b.color)}"></i>${esc(b.nombre)}</span>`).join("") + `<span><i style="background:transparent;outline:2px solid var(--bad)"></i>Atrasada</span>`;
+  const its = L.filter(o => overlaps(o, calSel, addDays(calSel, 1))).sort((a, b) => D(a.inicioPlan) - D(b.inicioPlan));
+  document.getElementById("dayTitle").textContent = `${fmtLong.format(calSel)} · ${its.length} OT`;
+  document.getElementById("dayList").innerHTML = its.length ? its.map(o => otCard(o)).join("") : `<div class="empty">Sin OT este día.</div>`;
+}
+
+/* ======================= Brigadas ======================= */
+function renderBrig() {
+  const t0 = startOfDay(new Date());
+  let h = `<div></div>` + Array.from({ length: 14 }, (_, i) => { const d = addDays(t0, i), we = d.getDay() === 0 || d.getDay() === 6;
+    return `<div class="h${we ? " we" : ""}">${"DLMMJVS"[d.getDay()]}<br>${d.getDate()}</div>`; }).join("");
+  for (const b of S.brigadas) {
+    h += `<div class="name" title="${esc(b.nombre)}"><span style="color:${esc(b.color)}">■</span> ${esc(b.nombre)}</div>`;
+    for (let i = 0; i < 14; i++) {
+      const d = addDays(t0, i), its = S.ots.filter(o => o.brigadaId === b.id && ACTIVA(o.estado) && overlaps(o, d, addDays(d, 1)));
+      const n = its.length;
+      h += `<div class="c${n ? " n1" : ""}${n > 1 ? " n2" : ""}" style="${n === 1 ? `background:${esc(b.color)}` : ""}" title="${esc(fmtD.format(d))}: ${its.map(o => "OT " + o.numero).join(", ") || "libre"}">${n || ""}</div>`;
+    }
+  }
+  document.getElementById("load").innerHTML = S.brigadas.length ? h : `<div class="empty" style="grid-column:1/-1">Crea brigadas para ver su carga.</div>`;
+  document.getElementById("brigList").innerHTML = S.brigadas.length ? S.brigadas.map(b => {
+    const mine = S.ots.filter(o => o.brigadaId === b.id), act = mine.filter(o => ACTIVA(o.estado));
+    const late = act.filter(o => D(o.finPlan) < new Date()).length;
+    const tel = (b.telefono || "").replace(/[^\d+]/g, "");
+    return `<div class="card"><div class="row"><span style="width:14px;height:14px;border-radius:4px;background:${esc(b.color)}"></span>
+      <h3 style="flex:1">${esc(b.nombre)}</h3>
+      ${tel ? `<a class="btn small" href="tel:${esc(tel)}">📞 Llamar</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/${esc(tel.replace("+", ""))}">WhatsApp</a>` : ""}
+      <button class="btn small" data-editbrig="${b.id}">Editar</button></div>
+      <div class="meta"><span>🏢 ${esc(b.empresa) || "—"}</span><span>👤 ${esc(b.supervisor) || "—"}</span><span>${esc(b.telefono) || ""}</span>${b.integrantes ? `<span>👷 ${esc(b.integrantes)} pers.</span>` : ""}</div>
+      <div class="meta" style="margin-top:4px"><span><b>${act.length}</b> activas</span><span style="color:${late ? "var(--bad)" : "inherit"}"><b>${late}</b> atrasadas</span><span><b>${mine.filter(o => o.estado === "terminada").length}</b> por recepcionar</span><span><b>${mine.filter(o => o.estado === "recepcionada").length}</b> cerradas</span></div>
+      ${b.notas ? `<p class="note" style="margin:6px 0 0">${esc(b.notas)}</p>` : ""}</div>`;
+  }).join("") : `<div class="empty">Aún no hay brigadas.</div>`;
+}
+
+/* ======================= Datos y avisos ======================= */
+function renderDatos() {
+  const a = S.ajustes, perm = "Notification" in window ? Notification.permission : "no";
+  document.getElementById("v-datos").innerHTML = `
+  <h2>Avisos</h2>
+  <div class="card" style="display:grid;gap:12px">
+    <div class="grid2">
+      <label>Avisar cuando falten (horas) para el término<input type="number" min="1" id="ajH" value="${a.horasVence}"></label>
+      <label>Avisar inicio con anticipación (días)<input type="number" min="0" id="ajD" value="${a.diasInicio}"></label>
+      <label>Alertar si no se recepciona en (días)<input type="number" min="0" id="ajR" value="${a.diasRecepcion}"></label>
+    </div>
+    <div class="row">
+      <button class="btn ${a.notif && perm === "granted" ? "" : "primary"}" id="notifBtn">${perm === "no" ? "Este navegador no soporta avisos" : a.notif && perm === "granted" ? "🔔 Avisos activados · desactivar" : "🔔 Activar avisos del navegador"}</button>
+      <button class="btn" id="testNotif">Probar aviso</button>
+    </div>
+    <p class="note" style="margin:0">Los avisos del navegador funcionan mientras esta página está abierta (puedes dejarla en una pestaña). Para recordatorios en el celular aunque la app esté cerrada, exporta el calendario (.ics) o usa “Google Calendar” en cada OT: incluyen alarmas 1 día antes del inicio y ${a.horasVence} h antes del término.</p>
+  </div>
+  <h2>Calendario</h2>
+  <div class="card row">
+    <button class="btn primary" id="icsBtn">📅 Exportar OT activas (.ics)</button>
+    <span class="note">Ábrelo con Google Calendar, Outlook o el calendario del celular para importarlo.</span>
+  </div>
+  <h2>Importar / exportar</h2>
+  <div class="card" style="display:grid;gap:10px">
+    <div class="row">
+      <button class="btn" id="impBtn">📋 Importar OT desde Excel / CSV</button>
+      <button class="btn" id="csvBtn">⬇ Exportar OT a Excel (CSV)</button>
+    </div>
+    <div class="row">
+      <button class="btn" id="bakBtn">💾 Descargar respaldo</button>
+      <label class="btn" style="display:inline-flex;color:inherit;font-size:.9rem">♻ Restaurar respaldo<input type="file" id="restFile" accept=".json,application/json" hidden></label>
+      <span class="spacer"></span>
+      <button class="btn danger" id="wipeBtn">Borrar todo</button>
+    </div>
+    <p class="note" style="margin:0">Los datos se guardan solo en este navegador y dispositivo. Descarga un respaldo de vez en cuando, y restáuralo para pasar tus datos a otro equipo.</p>
+  </div>`;
+}
+
+/* ======================= Formularios ======================= */
+function openOT(id, preset = {}) {
+  const o = id ? otById(id) : { id: "", numero: "", descripcion: "", sector: "", brigadaId: S.brigadas[0]?.id || "", prioridad: "media", estado: "planificada", avance: 0, notas: "", bitacora: [], ...preset };
+  const f = document.getElementById("fOT");
+  const tel = (brigById(o.brigadaId)?.telefono || "").replace(/[^\d]/g, "");
+  f.innerHTML = `
+    <div class="dlg-head"><h3>${id ? "OT " + esc(o.numero) : "Nueva OT"}</h3><button class="btn small" value="cancel" formnovalidate aria-label="Cerrar">✕</button></div>
+    <div class="grid2">
+      <label>N° OT *<input name="numero" required value="${esc(o.numero)}" inputmode="text" autocomplete="off"></label>
+      <label>Sector / ubicación<input name="sector" list="dlSect" value="${esc(o.sector)}"><datalist id="dlSect">${sectores().map(s => `<option value="${esc(s)}">`).join("")}</datalist></label>
+    </div>
+    <label>Descripción del trabajo<input name="descripcion" value="${esc(o.descripcion)}"></label>
+    <div class="grid2">
+      <label>Brigada<select name="brigadaId"><option value="">— Sin asignar —</option>${S.brigadas.map(b => `<option value="${b.id}" ${b.id === o.brigadaId ? "selected" : ""}>${esc(b.nombre)}${b.empresa ? " · " + esc(b.empresa) : ""}</option>`).join("")}</select></label>
+      <label>Prioridad<select name="prioridad">${["alta", "media", "baja"].map(p => `<option value="${p}" ${p === o.prioridad ? "selected" : ""}>${p[0].toUpperCase() + p.slice(1)}</option>`).join("")}</select></label>
+      <label>Inicio planificado *<input type="datetime-local" name="inicioPlan" required value="${esc(o.inicioPlan || "")}"></label>
+      <label>Término planificado *<input type="datetime-local" name="finPlan" required value="${esc(o.finPlan || "")}"></label>
+      <label>Estado<select name="estado">${ESTADOS.map(([k, v]) => `<option value="${k}" ${k === o.estado ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+      <label>Avance (%)<input type="number" name="avance" min="0" max="100" step="5" value="${Number(o.avance) || 0}"></label>
+      <label>Inicio real<input type="datetime-local" name="inicioReal" value="${esc(o.inicioReal || "")}"></label>
+      <label>Término real<input type="datetime-local" name="finReal" value="${esc(o.finReal || "")}"></label>
+    </div>
+    <label>Notas (permisos, materiales, bloqueos, HH…)<textarea name="notas" rows="2">${esc(o.notas)}</textarea></label>
+    ${id ? `<div><b style="font-size:.85rem;color:var(--muted)">Bitácora</b>
+      <div class="row" style="margin:6px 0"><input id="logTxt" placeholder="Ej: brigada llegó 08:40, falta bloqueo eléctrico" style="flex:1"><button type="button" class="btn small" id="logAdd">Agregar</button></div>
+      <div class="log">${(o.bitacora || []).slice().reverse().map(l => `<div><time>${esc(fdt(l.t))}</time>${esc(l.txt)}</div>`).join("") || '<span class="note">Sin registros.</span>'}</div></div>` : ""}
+    <div class="row">
+      ${id ? `<button type="button" class="btn small danger" id="delOT">Eliminar</button>
+        <a class="btn small" target="_blank" rel="noopener" href="${gcalURL(o)}">Google Calendar</a>
+        ${tel ? `<a class="btn small" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent(waText(o))}">WhatsApp brigada</a>` : ""}
+        <button type="button" class="btn small" id="dupOT">Duplicar</button>` : ""}
+      <span class="spacer"></span>
+      <button class="btn" value="cancel" formnovalidate>Cancelar</button>
+      <button class="btn primary" value="save">Guardar</button>
+    </div>`;
+  f.dataset.id = id || "";
+  const dlg = document.getElementById("dlgOT");
+  dlg.showModal();
+  const ini = f.inicioPlan, fin = f.finPlan;
+  ini.addEventListener("change", () => { if (ini.value && (!fin.value || fin.value < ini.value)) { const d = D(ini.value); d.setHours(d.getHours() + 8); fin.value = toLocalInput(d); } });
+  if (id) {
+    const add = () => { const v = document.getElementById("logTxt").value.trim(); if (!v) return; o.bitacora = [...(o.bitacora || []), { t: toLocalInput(new Date()), txt: v }]; persist(); dlg.close(); openOT(id); renderAll(); };
+    document.getElementById("logAdd").onclick = add;
+    document.getElementById("logTxt").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); add(); } });
+    document.getElementById("delOT").onclick = () => { if (confirm(`¿Eliminar la OT ${o.numero}?`)) { S.ots = S.ots.filter(x => x.id !== id); dlg.close(); save(); toast("OT eliminada"); } };
+    document.getElementById("dupOT").onclick = () => { dlg.close(); openOT(null, { ...o, id: "", numero: o.numero + "-2", estado: "planificada", avance: 0, inicioReal: "", finReal: "", bitacora: [] }); };
+  }
+}
+document.getElementById("dlgOT").addEventListener("close", e => {
+  const dlg = e.target, f = document.getElementById("fOT");
+  if (dlg.returnValue !== "save") return;
+  const fd = Object.fromEntries(new FormData(f));
+  const id = f.dataset.id;
+  const dupe = S.ots.find(x => x.numero.trim() === fd.numero.trim() && x.id !== id);
+  if (dupe && !confirm(`Ya existe la OT ${fd.numero}. ¿Guardar de todas formas?`)) return;
+  if (fd.finPlan < fd.inicioPlan) { toast("El término es anterior al inicio; se ajustó."); fd.finPlan = fd.inicioPlan; }
+  fd.avance = Math.max(0, Math.min(100, Number(fd.avance) || 0));
+  if (id) {
+    const o = otById(id);
+    if (o.estado !== fd.estado) o.bitacora = [...(o.bitacora || []), { t: toLocalInput(new Date()), txt: `Estado: ${EST_LABEL[o.estado]} → ${EST_LABEL[fd.estado]}` }];
+    Object.assign(o, fd);
+  } else S.ots.push({ id: uid(), bitacora: [{ t: toLocalInput(new Date()), txt: "OT creada" }], ...fd });
+  save(); toast("OT guardada");
+});
+function quick(id, to) {
+  const o = otById(id); if (!o) return;
+  const now = toLocalInput(new Date());
+  let txt = `Estado: ${EST_LABEL[o.estado]} → ${EST_LABEL[to]}`;
+  if (to === "ejecucion" && !o.inicioReal) o.inicioReal = now;
+  if (to === "terminada") { o.finReal = now; o.avance = 100; }
+  if (to === "detenida") { const m = prompt("Motivo de la detención:"); if (m === null) return; if (m) txt += ` · ${m}`; }
+  o.estado = to; o.bitacora = [...(o.bitacora || []), { t: now, txt }];
+  save(); toast(`OT ${o.numero}: ${EST_LABEL[to]}`);
+}
+function openBrig(id) {
+  const b = id ? brigById(id) : { nombre: "", empresa: "", supervisor: "", telefono: "", integrantes: "", notas: "", color: COLORS[S.brigadas.length % COLORS.length] };
+  const f = document.getElementById("fBrigForm");
+  f.dataset.id = id || "";
+  f.innerHTML = `<div class="dlg-head"><h3>${id ? "Editar brigada" : "Nueva brigada"}</h3><button class="btn small" value="cancel" formnovalidate aria-label="Cerrar">✕</button></div>
+    <div class="grid2">
+      <label>Nombre de la brigada *<input name="nombre" required value="${esc(b.nombre)}" placeholder="Ej: Brigada 3 Eléctrica"></label>
+      <label>Empresa contratista<input name="empresa" value="${esc(b.empresa)}"></label>
+      <label>Supervisor / capataz<input name="supervisor" value="${esc(b.supervisor)}"></label>
+      <label>Teléfono (con código país)<input name="telefono" type="tel" value="${esc(b.telefono)}" placeholder="+56 9 1234 5678"></label>
+      <label>N° integrantes<input name="integrantes" type="number" min="0" value="${esc(b.integrantes)}"></label>
+      <label>Color en calendario<input name="color" type="color" value="${esc(b.color)}" style="height:42px;padding:4px"></label>
+    </div>
+    <label>Notas (especialidad, turno, certificaciones…)<textarea name="notas" rows="2">${esc(b.notas)}</textarea></label>
+    <div class="row">${id ? `<button type="button" class="btn small danger" id="delBrig">Eliminar</button>` : ""}<span class="spacer"></span>
+      <button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="save">Guardar</button></div>`;
+  const dlg = document.getElementById("dlgBrig"); dlg.showModal();
+  if (id) document.getElementById("delBrig").onclick = () => {
+    const n = S.ots.filter(o => o.brigadaId === id).length;
+    if (confirm(`¿Eliminar ${b.nombre}?${n ? ` Sus ${n} OT quedarán sin brigada.` : ""}`)) {
+      S.brigadas = S.brigadas.filter(x => x.id !== id); S.ots.forEach(o => { if (o.brigadaId === id) o.brigadaId = ""; }); dlg.close(); save(); }
+  };
+}
+document.getElementById("dlgBrig").addEventListener("close", e => {
+  if (e.target.returnValue !== "save") return;
+  const f = document.getElementById("fBrigForm"), fd = Object.fromEntries(new FormData(f)), id = f.dataset.id;
+  if (id) Object.assign(brigById(id), fd); else S.brigadas.push({ id: uid(), ...fd });
+  save(); toast("Brigada guardada");
+});
+
+/* ======================= Calendario externo ======================= */
+const icsDate = s => { const d = D(s); return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`; };
+const icsEsc = s => String(s || "").replace(/\\/g, "\\\\").replace(/[,;]/g, m => "\\" + m).replace(/\r?\n/g, "\\n");
+const otTitle = o => `OT ${o.numero}${o.sector ? " · " + o.sector : ""}${brigById(o.brigadaId) ? " · " + brigById(o.brigadaId).nombre : ""}`;
+const otDetail = o => [o.descripcion, `Prioridad: ${o.prioridad || "-"}`, `Estado: ${EST_LABEL[o.estado]}`, o.notas].filter(Boolean).join("\n");
+function gcalURL(o) {
+  if (!o.inicioPlan || !o.finPlan) return "#";
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(otTitle(o)) +
+    "&dates=" + icsDate(o.inicioPlan) + "/" + icsDate(o.finPlan) + "&details=" + encodeURIComponent(otDetail(o)) + "&location=" + encodeURIComponent(o.sector || "");
+}
+function waText(o) {
+  return `Hola, recordatorio OT ${o.numero} (${o.descripcion || "sin descripción"}) en ${o.sector || "-"}. Plan: ${fdt(o.inicioPlan)} a ${fdt(o.finPlan)}. Estado: ${EST_LABEL[o.estado]}. Por favor confirmar avance.`;
+}
+function download(name, text, type) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function exportICS() {
+  const L = S.ots.filter(o => ACTIVA(o.estado) && o.inicioPlan && o.finPlan);
+  if (!L.length) return toast("No hay OT activas con fechas para exportar");
+  const stamp = icsDate(toLocalInput(new Date()));
+  const ev = L.map(o => ["BEGIN:VEVENT", `UID:${o.id}@asistente-inspector`, `DTSTAMP:${stamp}`, `DTSTART:${icsDate(o.inicioPlan)}`, `DTEND:${icsDate(o.finPlan)}`,
+    `SUMMARY:${icsEsc(otTitle(o))}`, `DESCRIPTION:${icsEsc(otDetail(o))}`, `LOCATION:${icsEsc(o.sector)}`,
+    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${icsEsc("Mañana inicia " + otTitle(o))}`, "TRIGGER:-P1D", "END:VALARM",
+    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${icsEsc("Por vencer " + otTitle(o))}`, `TRIGGER;RELATED=END:-PT${S.ajustes.horasVence}H`, "END:VALARM",
+    "END:VEVENT"].join("\r\n"));
+  download(`OT-activas-${dayKey(new Date())}.ics`, ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Asistente Inspector//ES", "CALSCALE:GREGORIAN", ...ev, "END:VCALENDAR"].join("\r\n"), "text/calendar");
+  toast(`${L.length} OT exportadas al calendario`);
+}
+
+/* ======================= CSV ======================= */
+const COLS = ["OT", "Descripcion", "Sector", "Brigada", "Empresa", "Prioridad", "Estado", "Inicio plan", "Termino plan", "Inicio real", "Termino real", "Avance %", "Notas"];
+function exportCSV() {
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`, f = s => s ? s.replace("T", " ") : "";
+  const rows = S.ots.map(o => { const b = brigById(o.brigadaId);
+    return [o.numero, o.descripcion, o.sector, b?.nombre, b?.empresa, o.prioridad, EST_LABEL[o.estado], f(o.inicioPlan), f(o.finPlan), f(o.inicioReal), f(o.finReal), o.avance, o.notas].map(q).join(";"); });
+  download(`OT-${dayKey(new Date())}.csv`, "﻿" + [COLS.map(q).join(";"), ...rows].join("\r\n"), "text/csv;charset=utf-8");
+}
+function parseCSV(text) {
+  text = text.replace(/^﻿/, "");
+  const first = text.split(/\r?\n/)[0] || "";
+  const delim = first.includes("\t") ? "\t" : (first.split(";").length >= first.split(",").length ? ";" : ",");
+  const rows = []; let row = [], cur = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"' && text[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') q = false; else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === delim) { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
+    else cur += c;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim()));
+}
+function parseDate(s, endOfDay) {
+  s = String(s || "").trim(); if (!s) return "";
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if (m) return `${m[1]}-${pad(m[2])}-${pad(m[3])}T${m[4] ? pad(m[4]) + ":" + m[5] : endOfDay ? "18:00" : "08:00"}`;
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if (m) { const y = m[3].length === 2 ? "20" + m[3] : m[3]; return `${y}-${pad(m[2])}-${pad(m[1])}T${m[4] ? pad(m[4]) + ":" + m[5] : endOfDay ? "18:00" : "08:00"}`; }
+  return "";
+}
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9%]/g, "");
+const ALIAS = {
+  numero: ["ot", "not", "nºot", "numero", "numeroot", "orden", "ordendetrabajo", "orden de trabajo"],
+  descripcion: ["descripcion", "trabajo", "detalle", "tarea", "texto", "textobreve"],
+  sector: ["sector", "area", "ubicacion", "ubicaciontecnica", "lugar", "planta", "equipo"],
+  brigada: ["brigada", "cuadrilla", "grupo", "contratista"],
+  empresa: ["empresa", "empresacontratista"],
+  prioridad: ["prioridad"], estado: ["estado", "status"],
+  inicioPlan: ["inicio", "inicioplan", "fechainicio", "iniplan", "inicioprogramado", "fechainicioplan", "desde"],
+  finPlan: ["termino", "terminoplan", "fin", "finplan", "fechatermino", "fechafin", "hasta", "fechaterminoplan", "terminoprogramado"],
+  inicioReal: ["inicioreal"], finReal: ["terminoreal", "finreal"], avance: ["avance", "avance%", "%avance"], notas: ["notas", "observaciones", "obs", "comentarios"]
+};
+function importRows(rows) {
+  if (rows.length < 2) return { n: 0, err: "Se necesita una fila de encabezados y al menos una OT." };
+  const head = rows[0].map(norm), map = {};
+  for (const [k, al] of Object.entries(ALIAS)) { const i = head.findIndex(h => al.map(norm).includes(h)); if (i >= 0) map[k] = i; }
+  if (map.numero === undefined) return { n: 0, err: "No encontré la columna de N° de OT (encabezado “OT”)." };
+  const estMap = s => { const n = norm(s); return n.startsWith("ejec") || n.startsWith("enejec") || n.startsWith("curso") ? "ejecucion" : n.startsWith("deten") ? "detenida" : n.startsWith("termin") ? "terminada" : n.startsWith("recep") || n.startsWith("cerr") ? "recepcionada" : "planificada"; };
+  let nuevas = 0, act = 0;
+  for (const r of rows.slice(1)) {
+    const g = k => map[k] !== undefined ? (r[map[k]] || "").trim() : "";
+    const numero = g("numero"); if (!numero) continue;
+    let brigadaId = "";
+    const bn = g("brigada");
+    if (bn) { let b = S.brigadas.find(x => norm(x.nombre) === norm(bn));
+      if (!b) { b = { id: uid(), nombre: bn, empresa: g("empresa"), supervisor: "", telefono: "", integrantes: "", notas: "", color: COLORS[S.brigadas.length % COLORS.length] }; S.brigadas.push(b); }
+      brigadaId = b.id; }
+    const data = { numero, descripcion: g("descripcion"), sector: g("sector"), prioridad: (["alta", "media", "baja"].find(p => norm(g("prioridad")).startsWith(p)) || "media"),
+      estado: g("estado") ? estMap(g("estado")) : "planificada", inicioPlan: parseDate(g("inicioPlan")), finPlan: parseDate(g("finPlan"), true),
+      inicioReal: parseDate(g("inicioReal")), finReal: parseDate(g("finReal"), true), avance: parseInt(g("avance")) || 0, notas: g("notas") };
+    if (!data.finPlan) data.finPlan = data.inicioPlan;
+    const ex = S.ots.find(o => o.numero.trim() === numero);
+    if (ex) { for (const k in data) if (data[k] !== "" && !(k === "avance" && !g("avance"))) ex[k] = data[k]; if (bn) ex.brigadaId = brigadaId; act++; }
+    else { S.ots.push({ id: uid(), brigadaId, bitacora: [{ t: toLocalInput(new Date()), txt: "Importada desde planilla" }], ...data }); nuevas++; }
+  }
+  return { n: nuevas + act, nuevas, act };
+}
+function openImport() {
+  const f = document.getElementById("fImport");
+  f.innerHTML = `<div class="dlg-head"><h3>Importar OT</h3><button class="btn small" value="cancel" formnovalidate aria-label="Cerrar">✕</button></div>
+    <p class="note" style="margin:0">Copia las filas desde Excel (incluyendo la fila de encabezados) y pégalas aquí, o elige un archivo CSV. Columnas reconocidas: <b>OT</b>, Descripción, Sector, Brigada, Empresa, Prioridad, Estado, Inicio, Término, Avance, Notas. Fechas como 25-11-2026 08:00 o 2026-11-25. Si la OT ya existe, se actualiza.</p>
+    <textarea id="impTxt" rows="8" placeholder="OT	Descripción	Sector	Brigada	Inicio	Término&#10;450123	Cambio rodamiento bomba 3	Chancado	Brigada 1	25-11-2026 08:00	25-11-2026 17:00"></textarea>
+    <div class="row"><input type="file" id="impFile" accept=".csv,.txt,text/csv" style="width:auto;flex:1"><span class="spacer"></span>
+      <button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="save">Importar</button></div>`;
+  document.getElementById("impFile").onchange = e => { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = () => { document.getElementById("impTxt").value = r.result; }; r.readAsText(file); };
+  document.getElementById("dlgImport").showModal();
+}
+document.getElementById("dlgImport").addEventListener("close", e => {
+  if (e.target.returnValue !== "save") return;
+  const res = importRows(parseCSV(document.getElementById("impTxt").value));
+  if (res.err) { toast(res.err); return; }
+  save(); toast(`${res.nuevas} OT nuevas, ${res.act} actualizadas`);
+});
+
+/* ======================= Notificaciones ======================= */
+function checkNotifs() {
+  const A = alertas();
+  const urgent = A.filter(a => a.sev !== "info" || a.k === "inicia").length;
+  const badge = document.getElementById("alertBadge");
+  const nBad = A.filter(a => a.sev === "bad").length;
+  badge.hidden = !nBad; badge.textContent = nBad;
+  document.title = (nBad ? `(${nBad}) ` : "") + "Asistente Inspector";
+  if (!S.ajustes.notif || !("Notification" in window) || Notification.permission !== "granted") return;
+  const today = dayKey(new Date()); let changed = false;
+  for (const a of A) {
+    if (a.k === "recepcion" && a.sev === "info") continue;
+    const k = `${a.ot.id}|${a.k}|${today}`;
+    if (S.avisados[k]) continue;
+    S.avisados[k] = 1; changed = true;
+    try { new Notification(`OT ${a.ot.numero} · ${a.t}`, { body: `${a.ot.descripcion || ""}\n${a.ot.sector || ""} · ${a.who}`, tag: k }); } catch (e) {}
+  }
+  if (changed) { for (const k in S.avisados) if (!k.endsWith(today)) delete S.avisados[k]; persist(); }
+  return urgent;
+}
+
+/* ======================= Demo ======================= */
+function loadDemo() {
+  const t0 = startOfDay(new Date()), at = (d, h) => { const x = addDays(t0, d); x.setHours(h); return toLocalInput(x); };
+  const B = [["Brigada 1 Eléctrica", "Montajes Andes Ltda.", "Juan Pérez", "+56 9 1111 2222", 4],
+             ["Brigada 2 Mecánica", "Servicios Norte SpA", "Carla Rojas", "+56 9 3333 4444", 5],
+             ["Brigada 3 Instrumentación", "Montajes Andes Ltda.", "Luis Soto", "+56 9 5555 6666", 3]]
+    .map(([nombre, empresa, supervisor, telefono, integrantes], i) => ({ id: uid(), nombre, empresa, supervisor, telefono, integrantes, notas: "", color: COLORS[i] }));
+  const ot = (numero, descripcion, sector, bi, ini, fin, estado, prioridad, avance = 0, extra = {}) =>
+    ({ id: uid(), numero, descripcion, sector, brigadaId: B[bi].id, inicioPlan: ini, finPlan: fin, estado, prioridad, avance, notas: "", bitacora: [{ t: toLocalInput(new Date()), txt: "OT de ejemplo" }], inicioReal: estado !== "planificada" ? ini : "", finReal: "", ...extra });
+  S.brigadas = B;
+  S.ots = [
+    ot("4501230", "Cambio de rodamientos motor bomba P-301", "Planta Chancado", 1, at(-2, 8), at(-1, 18), "ejecucion", "alta", 70),
+    ot("4501231", "Mantención tablero CCM-02, reapriete y termografía", "Subestación 2", 0, at(0, 8), at(0, 17), "ejecucion", "media", 40),
+    ot("4501232", "Calibración transmisores de presión línea 2", "Flotación", 2, at(0, 9), at(1, 13), "planificada", "media"),
+    ot("4501233", "Reemplazo luminarias LED nave principal", "Taller Central", 0, at(1, 8), at(3, 17), "planificada", "baja"),
+    ot("4501234", "Alineamiento correa transportadora CV-05", "Planta Chancado", 1, at(0, 14), at(2, 12), "planificada", "alta"),
+    ot("4501235", "Cambio de válvula de control FV-210", "Flotación", 2, at(-3, 8), at(-2, 17), "terminada", "media", 100, { finReal: at(-2, 16) }),
+    ot("4501236", "Revisión malla a tierra y medición de resistencia", "Subestación 2", 0, at(4, 8), at(5, 17), "planificada", "media"),
+    ot("4501237", "Reparación filtración reductor molino", "Molienda", 1, at(-1, 8), at(1, 17), "detenida", "alta", 30, { bitacora: [{ t: at(-1, 11), txt: "Detenida: falta repuesto (sello) en bodega" }] }),
+  ];
+  save(); toast("Datos de ejemplo cargados");
+}
+
+/* ======================= Navegación y eventos ======================= */
+let view = "hoy";
+function go(v) {
+  view = v;
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.view === v));
+  ["hoy", "ots", "cal", "brig", "datos"].forEach(x => document.getElementById("v-" + x).hidden = x !== v);
+  renderAll(); window.scrollTo({ top: 0 });
+}
+function renderAll() {
+  fillFilters();
+  ({ hoy: renderHoy, ots: renderOTs, cal: renderCal, brig: renderBrig, datos: renderDatos })[view]();
+  checkNotifs();
+}
+document.querySelector("nav.tabs").addEventListener("click", e => { const b = e.target.closest("button[data-view]"); if (b) { if (b.dataset.view === "ots") otPreset = null; go(b.dataset.view); } });
+document.body.addEventListener("click", e => {
+  const t = e.target;
+  const q = t.closest("[data-quick]"); if (q) { e.stopPropagation(); quick(q.dataset.quick, q.dataset.to); return; }
+  if (t.closest("a")) return;
+  const card = t.closest("[data-ot]"); if (card) { openOT(card.dataset.ot); return; }
+  const kpi = t.closest("[data-filter]");
+  if (kpi) { const f = kpi.dataset.filter; otPreset = null;
+    document.getElementById("fText").value = ""; document.getElementById("fBrig").value = ""; document.getElementById("fSector").value = "";
+    if (["ejecucion", "terminada"].includes(f)) document.getElementById("fEstado").value = f;
+    else { document.getElementById("fEstado").value = ""; otPreset = f; }
+    go("ots"); return; }
+  if (t.closest("#clearPreset")) { otPreset = null; renderOTs(); return; }
+  const day = t.closest("[data-day]"); if (day) { const [y, m, d] = day.dataset.day.split("-").map(Number); calSel = new Date(y, m - 1, d); if (calSel.getMonth() !== calMonth.getMonth()) calMonth = new Date(y, m - 1, 1); renderCal(); return; }
+  const eb = t.closest("[data-editbrig]"); if (eb) { openBrig(eb.dataset.editbrig); return; }
+  const g = t.closest("[data-go]"); if (g) { go(g.dataset.go); if (g.dataset.go === "brig") openBrig(); return; }
+  const id = t.closest("button,label")?.id;
+  const act = {
+    demoBtn: loadDemo, addBrig: () => openBrig(), icsBtn: exportICS, csvBtn: exportCSV, impBtn: openImport,
+    bakBtn: () => download(`respaldo-inspector-${dayKey(new Date())}.json`, JSON.stringify(S, null, 1), "application/json"),
+    wipeBtn: () => { if (confirm("¿Borrar TODAS las OT y brigadas de este navegador? Descarga un respaldo antes si lo necesitas.")) { S = blank(); save(); toast("Datos borrados"); } },
+    notifBtn: async () => {
+      if (!("Notification" in window)) return;
+      if (S.ajustes.notif && Notification.permission === "granted") { S.ajustes.notif = false; save(); return; }
+      const p = await Notification.requestPermission();
+      S.ajustes.notif = p === "granted"; save();
+      toast(p === "granted" ? "Avisos activados" : "El navegador bloqueó los avisos; habilítalos en la configuración del sitio");
+    },
+    testNotif: () => { if ("Notification" in window && Notification.permission === "granted") new Notification("Asistente Inspector", { body: "Así se verán los avisos de tus OT." }); else toast("Primero activa los avisos"); },
+  }[id];
+  if (act) act();
+});
+document.body.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-ot][role=button]")) { e.preventDefault(); openOT(e.target.dataset.ot); } });
+document.body.addEventListener("change", e => {
+  const id = e.target.id;
+  if (["ajH", "ajD", "ajR"].includes(id)) {
+    S.ajustes.horasVence = Math.max(1, +document.getElementById("ajH").value || 24);
+    S.ajustes.diasInicio = Math.max(0, +document.getElementById("ajD").value || 0);
+    S.ajustes.diasRecepcion = Math.max(0, +document.getElementById("ajR").value || 0);
+    persist(); checkNotifs(); toast("Ajustes guardados");
+  }
+  if (id === "restFile") {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = () => { try { const d = JSON.parse(r.result); if (!Array.isArray(d.ots) || !Array.isArray(d.brigadas)) throw 0;
+      if (!confirm(`Restaurar ${d.ots.length} OT y ${d.brigadas.length} brigadas? Reemplaza los datos actuales.`)) return;
+      S = { ...blank(), ...d, ajustes: { ...DEF_AJUSTES, ...(d.ajustes || {}) } }; save(); toast("Respaldo restaurado"); }
+      catch (err) { toast("Archivo de respaldo no válido"); } };
+    r.readAsText(file);
+  }
+  if (["fEstado", "fBrig", "fSector"].includes(id)) renderOTs();
+  if (id === "calBrig") { calBrig = e.target.value; renderCal(); }
+});
+document.getElementById("fText").addEventListener("input", renderOTs);
+document.getElementById("fab").addEventListener("click", () => {
+  const preset = {};
+  if (view === "cal") { const s = new Date(calSel); s.setHours(8); const f = new Date(calSel); f.setHours(17); preset.inicioPlan = toLocalInput(s); preset.finPlan = toLocalInput(f); }
+  if (view === "cal" && calBrig) preset.brigadaId = calBrig;
+  openOT(null, preset);
+});
+document.getElementById("calPrev").onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); };
+document.getElementById("calNext").onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCal(); };
+document.getElementById("calToday").onclick = () => { calSel = startOfDay(new Date()); calMonth = new Date(calSel.getFullYear(), calSel.getMonth(), 1); renderCal(); };
+// Tema
+const themes = ["auto", "light", "dark"];
+function setTheme(t) { if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.dataset.theme = t; try { localStorage.setItem(KEY + "-theme", t); } catch (e) {} }
+try { setTheme(localStorage.getItem(KEY + "-theme") || "auto"); } catch (e) {}
+document.getElementById("themeBtn").onclick = () => { const cur = document.documentElement.dataset.theme || "auto"; const nx = themes[(themes.indexOf(cur) + 1) % 3]; setTheme(nx); toast("Tema: " + { auto: "automático", light: "claro", dark: "oscuro" }[nx]); };
+// Reloj y verificación periódica
+const fmtClock = new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit" });
+function tick() { document.getElementById("clock").textContent = fmtClock.format(new Date()); }
+tick();
+setInterval(() => { tick(); if (!document.querySelector("dialog[open]") && view === "hoy") renderHoy(); checkNotifs(); }, 60000);
+renderAll();
+</script>
+</body>
+</html>
