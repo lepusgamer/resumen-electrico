@@ -70,7 +70,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .iconbtn:hover { background: rgba(255,255,255,.18); }
 @media (max-width: 860px) {
   .appbar .tabs { position: fixed; left: 0; right: 0; bottom: 0; margin: 0; background: var(--surface); border-top: 1px solid var(--line); justify-content: space-around; padding: 6px 4px max(6px, env(safe-area-inset-bottom)); z-index: 30; box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
-  .appbar .tabs button { flex-direction: column; gap: 2px; font-size: .72rem; padding: 6px 4px; color: var(--muted); flex: 1; }
+  .appbar .tabs button { flex-direction: column; gap: 2px; font-size: .68rem; padding: 6px 2px; color: var(--muted); flex: 1; min-width: 0; letter-spacing: .02em; }
   .appbar .tabs button:hover { background: none; color: var(--ink); }
   .appbar .tabs button[aria-selected="true"] { background: none; color: var(--accent); }
   .appbar .tabs button[aria-selected="true"] .i { color: var(--accent); }
@@ -110,9 +110,10 @@ main { padding-top: 20px; }
 .btn.go:hover { background: var(--accent); color: var(--accent-ink); }
 
 /* ---------- KPIs ---------- */
-.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 960px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kpis .kpi:first-child { grid-column: 1 / -1; } }
+.kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.hero .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .kpi { --k: var(--accent); --ks: var(--accent-soft); position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; cursor: pointer; text-align: left; display: grid; grid-template-columns: 1fr auto; align-items: start; box-shadow: var(--shadow); transition: box-shadow .15s, transform .15s; }
 .kpi:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
 .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--k); }
@@ -188,7 +189,7 @@ main { padding-top: 20px; }
 .empty .i { width: 28px; height: 28px; opacity: .6; }
 
 /* ---------- Filtros ---------- */
-.toolbar { display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.toolbar { display: grid; grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
 @media (max-width: 760px) { .toolbar { grid-template-columns: 1fr 1fr; } .toolbar .search { grid-column: 1 / -1; } }
 .search { position: relative; }
 .search .i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
@@ -228,7 +229,8 @@ label { display: grid; gap: 5px; font-size: .8rem; color: var(--muted); font-wei
   .cal .dn { width: 100%; height: 22px; border-radius: 6px; }
   .cal .day.today .dn { width: 22px; border-radius: 50%; }
   .chip { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: var(--b); font-size: 0; }
-  .chip .x, .chip span { display: none; }
+  .chip .x, .chip span, .chip .bz { display: none; }
+  .chip.emgc { box-shadow: 0 0 0 2px var(--bad); }
   .more { display: none; }
   .calhead .title { font-size: 1.4rem; min-width: 0; flex: 1; }
 }
@@ -305,6 +307,58 @@ dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 2
   .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
   body { padding-bottom: 150px; }
 }
+/* ---------- Emergencias y pagos ---------- */
+.btn.emg { background: var(--bad); border-color: var(--bad); color: #fff; }
+.btn.emg:hover { filter: brightness(1.08); border-color: var(--bad); }
+.pill.emg { background: var(--bad); color: #fff; }
+.pill.emg::before { display: none; }
+.pill.emg .i { width: 12px; height: 12px; }
+.chip .bz { width: 11px; height: 11px; flex: none; color: var(--bad); }
+.chip.closed { opacity: .55; }
+.chip.emgc { border-left-style: dashed; }
+.badge.n { background: var(--accent); color: var(--accent-ink); }
+.money { font: 600 .9rem var(--f-mono); white-space: nowrap; }
+.paybox { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+.prow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid var(--line); cursor: pointer; }
+.prow:first-child { border-top: 0; }
+.prow:hover { background: var(--sunken); }
+.prow.head { cursor: default; background: var(--sunken); font: 700 .75rem var(--f-body); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.prow b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow small { color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow.paid { grid-template-columns: 74px minmax(0, 1fr) auto auto; }
+.prow .fp { font: 600 .82rem var(--f-mono); color: var(--muted); }
+.prow .ref { font-size: .8rem; color: var(--muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prow .fp { white-space: nowrap; }
+@media (max-width: 600px) {
+  .prow { padding: 11px 12px; gap: 10px; }
+  .prow b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: .9rem; line-height: 1.3; }
+  .prow .ref { display: none; } .prow.paid { grid-template-columns: 62px minmax(0, 1fr) auto; } .prow.paid > :last-child { display: none; }
+  .prow .fp { font-size: .74rem; }
+  .prow:not(.paid):not(.head) { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .prow:not(.paid):not(.head) .money { grid-column: 2; grid-row: 2; justify-self: start; }
+  .prow:not(.paid):not(.head) .btn { grid-column: 3; grid-row: 1 / span 2; }
+  .prow.head { grid-template-columns: auto 1fr; } .prow.head span:nth-child(n+3) { display: none; }
+}
+.chk { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; padding: 0; }
+.mhead { display: flex; align-items: baseline; gap: 10px; padding: 10px 16px; background: var(--sunken); border-top: 1px solid var(--line); font: 700 .95rem var(--f-display); text-transform: uppercase; letter-spacing: .05em; }
+.mhead:first-child { border-top: 0; }
+.mhead small { font: 400 .8rem var(--f-body); color: var(--muted); text-transform: none; letter-spacing: 0; }
+.mhead .money { margin-left: auto; }
+.bulkbar { position: sticky; top: 72px; z-index: 6; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 10px; border-radius: 12px; background: var(--ink); color: var(--bg); box-shadow: var(--shadow-lg); }
+.bulkbar .money { color: var(--bg); }
+@media (max-width: 860px) { .bulkbar { top: 72px; } }
+.sumtab { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.sumtab th { text-align: left; font: 700 .72rem var(--f-body); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); padding: 10px 14px; background: var(--sunken); }
+.sumtab td { padding: 10px 14px; border-top: 1px solid var(--line); }
+.sumtab .r { text-align: right; }
+.paylist { display: grid; gap: 8px; max-height: 280px; overflow: auto; }
+.payitem { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 10px; align-items: center; }
+.payitem b { display: block; font-size: .9rem; } .payitem small { color: var(--muted); }
+.total { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 10px; background: var(--ok-soft); color: var(--ok); font-weight: 700; }
+.st-recepcionada { background: rgba(15,138,148,.13); color: #0d7f88; }
+.st-pagada { background: var(--sunken); color: var(--muted); }
+:root[data-theme="dark"] .st-recepcionada { color: #4cc9d2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .st-recepcionada { color: #4cc9d2; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -318,6 +372,7 @@ dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 2
       <button role="tab" data-view="ots"><span data-ic="list"></span>Órdenes</button>
       <button role="tab" data-view="cal"><span data-ic="cal"></span>Calendario</button>
       <button role="tab" data-view="brig"><span data-ic="users"></span>Brigadas</button>
+      <button role="tab" data-view="pagos"><span data-ic="money"></span>Pagos<span class="badge n" id="payBadge" hidden></span></button>
       <button role="tab" data-view="datos"><span data-ic="bell"></span>Ajustes</button>
     </nav>
     <div class="right">
@@ -330,12 +385,13 @@ dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 2
 <main class="wrap">
   <section id="v-hoy"></section>
   <section id="v-ots" hidden>
-    <div class="hero"><div><h2>Órdenes de trabajo</h2><p id="otSub"></p></div></div>
+    <div class="hero"><div><h2>Órdenes de trabajo</h2><p id="otSub"></p></div><div class="acts"><button class="btn emg" data-emg="now"><span data-ic="bolt"></span>Registrar emergencia</button></div></div>
     <div class="toolbar">
       <div class="search"><span data-ic="search"></span><input id="fText" type="search" placeholder="Buscar OT, descripción, sector, brigada…"></div>
       <select id="fEstado" aria-label="Estado"></select>
       <select id="fBrig" aria-label="Brigada"></select>
       <select id="fSector" aria-label="Sector"></select>
+      <select id="fTipo" aria-label="Tipo"><option value="">Todos los tipos</option><option value="programada">Programadas</option><option value="emergencia">Emergencias</option></select>
     </div>
     <div class="list" id="otList"></div>
   </section>
@@ -350,7 +406,7 @@ dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 2
     </div>
     <div class="calwrap"><div class="cal" id="cal"></div></div>
     <div class="legend" id="calLegend"></div>
-    <div class="sec"><h3 id="dayTitle"></h3><span class="count" id="dayCount"></span></div>
+    <div class="sec"><h3 id="dayTitle"></h3><span class="count" id="dayCount"></span><span class="spacer"></span><button class="btn small emg" data-emg="day"><span data-ic="bolt" class="sm"></span>Emergencia este día</button></div>
     <div class="list" id="dayList"></div>
   </section>
   <section id="v-brig" hidden>
@@ -360,6 +416,7 @@ dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 2
     <div class="sec"><h3>Equipos</h3><span class="count" id="brigCount"></span></div>
     <div class="bgrid" id="brigList"></div>
   </section>
+  <section id="v-pagos" hidden></section>
   <section id="v-datos" hidden></section>
 </main>
 
@@ -367,6 +424,7 @@ dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 2
 
 <dialog id="dlgOT"><form method="dialog" id="fOT"></form></dialog>
 <dialog id="dlgBrig"><form method="dialog" id="fBrigForm"></form></dialog>
+<dialog id="dlgPago"><form method="dialog" id="fPago"></form></dialog>
 <dialog id="dlgImport"><form method="dialog" id="fImport"></form></dialog>
 <div class="toast" id="toast" role="status"></div>
 
@@ -406,6 +464,7 @@ const IC = {
   copy: "M9 9h11v11H9zM5 15H4V4h11v1",
   edit: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
   sheet: "M4 3h16v18H4zM4 9h16M4 15h16M10 3v18",
+  money: "M12 2v20M17 5.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
 };
 const ic = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 function hydrateIcons(root = document) { root.querySelectorAll("[data-ic]").forEach(el => { el.outerHTML = ic(el.dataset.ic, el.className); }); }
@@ -414,10 +473,12 @@ function hydrateIcons(root = document) { root.querySelectorAll("[data-ic]").forE
 const KEY = "inspector-mant-v1";
 const ESTADOS = [
   ["planificada", "Planificada"], ["ejecucion", "En ejecución"], ["detenida", "Detenida"],
-  ["terminada", "Terminada (por recepcionar)"], ["recepcionada", "Recepcionada / cerrada"]
+  ["terminada", "Terminada (por recepcionar)"], ["recepcionada", "Recepcionada (por pagar)"], ["pagada", "Pagada"]
 ];
 const EST_LABEL = Object.fromEntries(ESTADOS.map(([k, v]) => [k, v.replace(/ \(.*/, "")]));
 const ACTIVA = e => e === "planificada" || e === "ejecucion" || e === "detenida";
+const CERRADA = e => e === "recepcionada" || e === "pagada";
+const isEmg = o => o.tipo === "emergencia";
 const COLORS = ["#2563c9", "#d0433a", "#1e9257", "#8a4fd0", "#d07a12", "#0f8a94", "#c03a86", "#5f7330"];
 const DEF_AJUSTES = { horasVence: 24, diasInicio: 2, diasRecepcion: 2, notif: false };
 
@@ -454,6 +515,12 @@ const fmtLong = new Intl.DateTimeFormat("es-CL", { weekday: "long", day: "numeri
 const fmtMonth = new Intl.DateTimeFormat("es-CL", { month: "long", year: "numeric" });
 const fmtHM = new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit", hour12: false });
 const fdt = s => s ? fmtDT.format(D(s)) : "—";
+const Dd = s => s ? new Date(s.length === 10 ? s + "T00:00" : s) : null;
+const fmtDay = new Intl.DateTimeFormat("es-CL", { day: "2-digit", month: "2-digit", year: "2-digit" });
+const fd = s => s ? fmtDay.format(Dd(s)) : "—";
+const fmtCLP = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
+const money = v => Number(v) ? fmtCLP.format(Number(v)) : "—";
+const sum = L => L.reduce((a, o) => a + (Number(o.monto) || 0), 0);
 function fRange(a, b) {
   if (!a) return "Sin fecha";
   const A = D(a), B = D(b);
@@ -478,12 +545,17 @@ function initials(name) {
 const bColor = id => brigById(id)?.color || "#7a8791";
 
 /* ======================= Alertas ======================= */
-const KIND_IC = { atrasada: "alert", vence: "clock", noinicia: "play", inicia: "arrow", detenida: "pause", recepcion: "check", choque: "swap" };
+const KIND_IC = { atrasada: "alert", vence: "clock", noinicia: "play", inicia: "arrow", detenida: "pause", recepcion: "check", choque: "swap", emergencia: "bolt" };
 function alertas(now = new Date()) {
   const A = [], aj = S.ajustes, H = 3600e3;
   for (const o of S.ots) {
     const ini = D(o.inicioPlan), fin = D(o.finPlan), b = brigById(o.brigadaId);
     const base = { ot: o, who: b ? b.nombre : "Sin brigada" };
+    if (isEmg(o) && ACTIVA(o.estado)) {
+      A.push({ ...base, sev: "bad", k: "emergencia", t: `Emergencia en curso${ini && ini < now ? " · " + dur(now - ini) : ""}`, sub: `Inició ${fdt(o.inicioPlan)}`, when: -2e15 });
+      continue;
+    }
+    if (isEmg(o) && o.estado !== "terminada") continue;
     if (ACTIVA(o.estado) && fin && fin < now)
       A.push({ ...base, sev: "bad", k: "atrasada", t: `Atrasada ${dur(now - fin)}`, sub: `Debía terminar ${fdt(o.finPlan)}`, when: -1e15 + fin.getTime() });
     else if (ACTIVA(o.estado) && fin && fin - now <= aj.horasVence * H)
@@ -516,8 +588,10 @@ function alertas(now = new Date()) {
 /* ======================= Componentes ======================= */
 function dueInfo(o, now = new Date()) {
   const ini = D(o.inicioPlan), fin = D(o.finPlan);
-  if (o.estado === "recepcionada") return ["muted", "check", "Cerrada"];
+  if (o.estado === "pagada") return ["okc", "money", "Pagada " + fd(o.fechaPago)];
+  if (o.estado === "recepcionada") return ["info", "money", "Por pagar"];
   if (o.estado === "terminada") return ["info", "check", "Por recepcionar"];
+  if (isEmg(o)) return ["bad", "bolt", ini && ini < now ? "En curso " + dur(now - ini) : "En curso"];
   if (fin && fin < now) return ["bad", "alert", "Atrasada " + dur(now - fin)];
   if (o.estado === "planificada" && ini && ini < now) return ["bad", "play", "Sin iniciar"];
   if (o.estado === "planificada" && ini) return ["info", "arrow", "Inicia en " + dur(ini - now)];
@@ -525,7 +599,7 @@ function dueInfo(o, now = new Date()) {
   return ["muted", "clock", "Sin fecha"];
 }
 function quickBtn(o) {
-  const m = { planificada: ["ejecucion", "Iniciar", "play"], ejecucion: ["terminada", "Terminar", "check"], detenida: ["ejecucion", "Reanudar", "play"], terminada: ["recepcionada", "Recepcionar", "checkc"] }[o.estado];
+  const m = { planificada: ["ejecucion", "Iniciar", "play"], ejecucion: ["terminada", "Terminar", "check"], detenida: ["ejecucion", "Reanudar", "play"], terminada: ["recepcionada", "Recepcionar", "checkc"], recepcionada: ["pagada", "Marcar pagada", "money"] }[o.estado];
   return m ? `<button class="btn small go" data-quick="${o.id}" data-to="${m[0]}">${ic(m[2], "sm")}${m[1]}</button>` : "";
 }
 function otCard(o) {
@@ -535,14 +609,16 @@ function otCard(o) {
   const showBar = o.estado === "ejecucion" || o.estado === "detenida" || av > 0;
   return `<div class="ot" data-ot="${o.id}" tabindex="0" role="button" style="--b:${esc(bColor(o.brigadaId))}">
     <div class="ot-top"><span class="num">OT ${esc(o.numero)}</span>
+      ${isEmg(o) ? `<span class="pill emg">${ic("bolt")}Emergencia</span>` : ""}
       <span class="pill st-${o.estado}">${EST_LABEL[o.estado]}</span>
-      ${o.prioridad ? `<span class="prio pr-${o.prioridad}">${o.prioridad}</span>` : ""}
+      ${o.prioridad && !isEmg(o) ? `<span class="prio pr-${o.prioridad}">${o.prioridad}</span>` : ""}
+      ${Number(o.monto) && CERRADA(o.estado) ? `<span class="money" style="font-size:.8rem;color:var(--muted)">${money(o.monto)}</span>` : ""}
       <span class="due ${dc}">${ic(di, "sm")}${dt}</span></div>
     <div class="desc">${esc(o.descripcion) || '<span class="note">Sin descripción</span>'}</div>
     <div class="meta">
       <span>${ic("pin", "sm")}${esc(o.sector) || "—"}</span>
       <span><span class="av">${esc(initials(b?.nombre))}</span>${esc(b?.nombre) || "Sin brigada"}</span>
-      <span>${ic("cal", "sm")}${fRange(o.inicioPlan, o.finPlan)}</span>
+      <span>${ic("cal", "sm")}${isEmg(o) && (ACTIVA(o.estado) || o.finPlan === o.inicioPlan) ? (ACTIVA(o.estado) ? "Desde " : "") + fdt(o.inicioPlan) : fRange(o.inicioPlan, o.finPlan)}</span>
     </div>
     ${showBar || quickBtn(o) ? `<div class="ot-foot">${showBar ? `<div class="bar" title="Avance ${av}%"><i style="width:${av}%"></i></div><span class="pct">${av}%</span>` : ""}${quickBtn(o)}</div>` : ""}
   </div>`;
@@ -562,7 +638,9 @@ function renderHoy() {
   const now = new Date(), A = alertas(now);
   const act = S.ots.filter(o => ACTIVA(o.estado));
   const t0 = startOfDay(now), t1 = addDays(t0, 1);
-  const hoy = act.filter(o => overlaps(o, t0, t1));
+  const hoy = act.filter(o => !isEmg(o) && overlaps(o, t0, t1));
+  const emgHoy = S.ots.filter(o => isEmg(o) && (overlaps(o, t0, t1) || ACTIVA(o.estado))).sort((a, b) => D(b.inicioPlan) - D(a.inicioPlan));
+  const porPagar = S.ots.filter(o => o.estado === "recepcionada");
   const prox = act.filter(o => D(o.inicioPlan) >= t1 && D(o.inicioPlan) < addDays(t0, 8)).sort((a, b) => D(a.inicioPlan) - D(b.inicioPlan));
   const n = k => A.filter(a => a.k === k).length;
   const el = document.getElementById("v-hoy");
@@ -600,13 +678,15 @@ function renderHoy() {
     }).join("");
   }).join("");
   el.innerHTML = `
-    <div class="hero"><div><h2>${saludo}</h2><p>${cap(fmtLong.format(now))} · ${resumen}</p></div></div>
+    <div class="hero"><div><h2>${saludo}</h2><p>${cap(fmtLong.format(now))} · ${resumen}</p></div>
+      <div class="acts"><button class="btn emg" data-emg="now">${ic("bolt", "sm")}Registrar emergencia</button></div></div>
     <div class="kpis">
       ${kpi("", "activas", act.length, "OT activas", "list")}
       ${kpi("ok", "ejecucion", act.filter(o => o.estado === "ejecucion").length, "En ejecución", "bolt")}
       ${kpi("bad", "atrasadas", crit, "Atrasadas / sin iniciar", "alert")}
       ${kpi("warn", "vence", n("vence"), `Vencen en ≤ ${S.ajustes.horasVence} h`, "clock")}
       ${kpi("", "terminada", n("recepcion"), "Por recepcionar", "checkc")}
+      ${kpi("", "porpagar", porPagar.length, porPagar.length && sum(porPagar) ? `Por pagar · ${money(sum(porPagar))}` : "Por pagar", "money")}
     </div>
     <div class="cols">
       <div>
@@ -614,6 +694,7 @@ function renderHoy() {
         ${A.length ? groups : `<div class="allgood">${ic("checkc")}Sin alertas. Todo en orden.</div>`}
       </div>
       <div>
+        ${emgHoy.length ? `<div class="sec"><h3 style="color:var(--bad)">Emergencias</h3><span class="count">${emgHoy.length}</span></div><div class="list">${emgHoy.map(otCard).join("")}</div>` : ""}
         <div class="sec"><h3>En terreno hoy</h3><span class="count">${hoy.length}</span></div>
         <div class="list">${hoy.length ? hoy.sort((a, b) => (brigById(a.brigadaId)?.nombre || "").localeCompare(brigById(b.brigadaId)?.nombre || "")).map(otCard).join("") : emptyBox("cal", "No hay OT planificadas para hoy.")}</div>
         <div class="sec"><h3>Próximos 7 días</h3><span class="count">${prox.length}</span></div>
@@ -627,7 +708,7 @@ let otPreset = null;
 function fillFilters() {
   const keep = id => document.getElementById(id).value;
   const fe = keep("fEstado"), fb = keep("fBrig"), fs = keep("fSector");
-  document.getElementById("fEstado").innerHTML = `<option value="">Activas + por recepcionar</option><option value="todas">Todos los estados</option>` + ESTADOS.map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  document.getElementById("fEstado").innerHTML = `<option value="">Abiertas + por recepcionar</option><option value="todas">Todos los estados</option>` + ESTADOS.map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
   document.getElementById("fBrig").innerHTML = `<option value="">Todas las brigadas</option>` + S.brigadas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join("") + `<option value="_none">Sin brigada</option>`;
   document.getElementById("fSector").innerHTML = `<option value="">Todos los sectores</option>` + sectores().map(s => `<option>${esc(s)}</option>`).join("");
   document.getElementById("fEstado").value = fe; document.getElementById("fBrig").value = fb; document.getElementById("fSector").value = fs;
@@ -637,9 +718,11 @@ function fillFilters() {
 function renderOTs() {
   const q = document.getElementById("fText").value.trim().toLowerCase();
   const fe = document.getElementById("fEstado").value, fb = document.getElementById("fBrig").value, fs = document.getElementById("fSector").value;
+  const ft = document.getElementById("fTipo").value;
   const now = new Date();
   const L = S.ots.filter(o => {
-    if (fe === "" && o.estado === "recepcionada") return false;
+    if (fe === "" && CERRADA(o.estado)) return false;
+    if (ft && (o.tipo || "programada") !== ft) return false;
     if (fe && fe !== "todas" && o.estado !== fe) return false;
     if (fb === "_none" ? o.brigadaId : fb && o.brigadaId !== fb) return false;
     if (fs && (o.sector || "").trim() !== fs) return false;
@@ -659,7 +742,7 @@ function renderOTs() {
 /* ======================= Calendario ======================= */
 let calMonth = startOfDay(new Date()); calMonth.setDate(1);
 let calSel = startOfDay(new Date()); let calBrig = "";
-function calOTs() { return S.ots.filter(o => o.estado !== "recepcionada" && (!calBrig || o.brigadaId === calBrig)); }
+function calOTs() { return S.ots.filter(o => !calBrig || o.brigadaId === calBrig); }
 function renderCal() {
   const now = new Date(), y = calMonth.getFullYear(), m = calMonth.getMonth();
   document.getElementById("calTitle").textContent = cap(fmtMonth.format(calMonth));
@@ -673,11 +756,12 @@ function renderCal() {
     const cls = ["day", d.getMonth() !== m && "out", (d.getDay() === 0 || d.getDay() === 6) && "we", dayKey(d) === dayKey(now) && "today", dayKey(d) === dayKey(calSel) && "sel"].filter(Boolean).join(" ");
     h += `<button class="${cls}" data-day="${dayKey(d)}" aria-label="${fmtLong.format(d)}, ${its.length} OT"><span class="dn">${d.getDate()}</span>` +
       its.slice(0, 3).map(o => { const late = ACTIVA(o.estado) && D(o.finPlan) < now;
-        return `<span class="chip" style="--b:${esc(bColor(o.brigadaId))}" title="OT ${esc(o.numero)} · ${esc(o.descripcion)}">${late ? '<i class="x"></i>' : ""}<span>${esc(o.numero)} · ${esc(o.sector || "")}</span></span>`; }).join("") +
+        const cls = ["chip", CERRADA(o.estado) && "closed", isEmg(o) && "emgc"].filter(Boolean).join(" ");
+        return `<span class="${cls}" style="--b:${esc(bColor(o.brigadaId))}" title="${isEmg(o) ? "EMERGENCIA · " : ""}OT ${esc(o.numero)} · ${esc(o.descripcion)} · ${EST_LABEL[o.estado]}">${late ? '<i class="x"></i>' : ""}${isEmg(o) ? ic("bolt", "bz") : ""}<span>${esc(o.numero)} · ${esc(o.sector || "")}</span></span>`; }).join("") +
       (its.length > 3 ? `<span class="more">+${its.length - 3} más</span>` : "") + `</button>`;
   }
   document.getElementById("cal").innerHTML = h;
-  document.getElementById("calLegend").innerHTML = S.brigadas.map(b => `<span><i style="background:${esc(b.color)}"></i>${esc(b.nombre)}</span>`).join("") + `<span><i style="background:var(--bad);border-radius:50%;width:7px;height:7px"></i>Atrasada</span>`;
+  document.getElementById("calLegend").innerHTML = S.brigadas.map(b => `<span><i style="background:${esc(b.color)}"></i>${esc(b.nombre)}</span>`).join("") + `<span><i style="background:var(--bad);border-radius:50%;width:7px;height:7px"></i>Atrasada</span><span style="color:var(--bad)">${ic("bolt", "sm")}<span style="color:var(--muted)">Emergencia</span></span><span><i style="background:var(--muted);opacity:.5"></i>Recepcionada / pagada</span>`;
   const its = L.filter(o => overlaps(o, calSel, addDays(calSel, 1))).sort((a, b) => D(a.inicioPlan) - D(b.inicioPlan));
   document.getElementById("dayTitle").textContent = cap(fmtLong.format(calSel));
   document.getElementById("dayCount").textContent = `${its.length} OT`;
@@ -711,12 +795,114 @@ function renderBrig() {
         <div class="stat"><b>${act.length}</b><span>Activas</span></div>
         <div class="stat ${late ? "bad" : ""}"><b>${late}</b><span>Atrasadas</span></div>
         <div class="stat"><b>${mine.filter(o => o.estado === "terminada").length}</b><span>Por recep.</span></div>
-        <div class="stat"><b>${mine.filter(o => o.estado === "recepcionada").length}</b><span>Cerradas</span></div>
+        <div class="stat"><b>${mine.filter(o => o.estado === "recepcionada").length}</b><span>Por pagar</span></div>
       </div>
       <div class="row"><span class="note" style="display:inline-flex;gap:6px;align-items:center;flex:1;min-width:0">${ic("users", "sm")}${esc(b.supervisor) || "Sin supervisor"}</span>
         ${tel ? `<a class="btn small" href="tel:${esc(tel)}">${ic("phone", "sm")}Llamar</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/${esc(tel.replace("+", ""))}">${ic("msg", "sm")}WhatsApp</a>` : ""}</div>
       ${b.notas ? `<p class="note" style="margin:0">${esc(b.notas)}</p>` : ""}</div>`;
   }).join("") : emptyBox("users", "Aún no hay brigadas.");
+}
+
+/* ======================= Pagos ======================= */
+const paySel = new Set(); let payBrig = "", payMes = "";
+const fmtMes = new Intl.DateTimeFormat("es-CL", { month: "long", year: "numeric" });
+const mesLabel = k => cap(fmtMes.format(new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1)));
+function renderPagos() {
+  const byB = o => !payBrig || o.brigadaId === payBrig;
+  const porPagar = S.ots.filter(o => o.estado === "recepcionada" && byB(o)).sort((a, b) => (a.fechaRecepcion || "").localeCompare(b.fechaRecepcion || ""));
+  for (const id of [...paySel]) if (!porPagar.some(o => o.id === id)) paySel.delete(id);
+  const pagAll = S.ots.filter(o => o.estado === "pagada" && byB(o));
+  const meses = [...new Set(pagAll.map(o => (o.fechaPago || "").slice(0, 7)).filter(Boolean))].sort().reverse();
+  if (payMes && !meses.includes(payMes)) payMes = "";
+  const pagadas = pagAll.filter(o => !payMes || (o.fechaPago || "").startsWith(payMes)).sort((a, b) => (b.fechaPago || "").localeCompare(a.fechaPago || ""));
+  const porRecep = S.ots.filter(o => o.estado === "terminada" && byB(o)).length;
+  const sel = porPagar.filter(o => paySel.has(o.id));
+  const brigName = o => esc(brigById(o.brigadaId)?.nombre || "Sin brigada");
+  const rowPend = o => `<div class="prow" data-ot="${o.id}">
+      <input type="checkbox" class="chk psel" data-id="${o.id}" ${paySel.has(o.id) ? "checked" : ""} aria-label="Seleccionar OT ${esc(o.numero)}">
+      <div style="min-width:0"><b>${isEmg(o) ? `<span style="color:var(--bad)">${ic("bolt", "sm")}</span> ` : ""}OT ${esc(o.numero)} · ${esc(o.descripcion || "Sin descripción")}</b>
+        <small>${brigName(o)} · ${esc(o.sector || "—")} · Recepcionada ${fd(o.fechaRecepcion)}</small></div>
+      <span class="money">${money(o.monto)}</span>
+      <button class="btn small go" data-quick="${o.id}" data-to="pagada">${ic("money", "sm")}Pagar</button></div>`;
+  const groups = {};
+  for (const o of pagadas) (groups[(o.fechaPago || "").slice(0, 7) || "sin"] ||= []).push(o);
+  const paidHtml = Object.entries(groups).map(([k, L]) => `<div class="mhead">${k === "sin" ? "Sin fecha" : mesLabel(k)}<small>${L.length} OT</small><span class="money">${money(sum(L))}</span></div>` +
+    L.map(o => `<div class="prow paid" data-ot="${o.id}"><span class="fp">${fd(o.fechaPago)}</span>
+      <div style="min-width:0"><b>${isEmg(o) ? `<span style="color:var(--bad)">${ic("bolt", "sm")}</span> ` : ""}OT ${esc(o.numero)} · ${esc(o.descripcion || "Sin descripción")}</b><small>${brigName(o)}${brigById(o.brigadaId)?.empresa ? " · " + esc(brigById(o.brigadaId).empresa) : ""}</small></div>
+      <span class="money">${money(o.monto)}</span><span class="ref" title="${esc(o.refPago || "")}">${esc(o.refPago || "")}</span></div>`).join("")).join("");
+  // Resumen por empresa
+  const emp = {};
+  for (const o of S.ots.filter(o => (o.estado === "recepcionada" || (o.estado === "pagada" && (!payMes || (o.fechaPago || "").startsWith(payMes)))) && byB(o))) {
+    const b = brigById(o.brigadaId), k = b?.empresa || b?.nombre || "Sin brigada";
+    const e = emp[k] ||= { pend: [], pag: [] };
+    (o.estado === "pagada" ? e.pag : e.pend).push(o);
+  }
+  document.getElementById("v-pagos").innerHTML = `
+    <div class="hero"><div><h2>Pagos</h2><p><b>${porPagar.length}</b> OT recepcionadas por pagar${sum(porPagar) ? ` (${money(sum(porPagar))})` : ""} · <b>${pagadas.length}</b> pagadas${payMes ? " en " + mesLabel(payMes).toLowerCase() : ""}${sum(pagadas) ? ` (${money(sum(pagadas))})` : ""}${porRecep ? ` · ${porRecep} terminadas aún sin recepcionar` : ""}</p></div>
+      <div class="acts"><button class="btn" id="payCsv">${ic("down", "sm")}Exportar pagadas</button></div></div>
+    <div class="toolbar" style="grid-template-columns:repeat(2,minmax(0,220px))">
+      <select id="pBrig" aria-label="Brigada"><option value="">Todas las brigadas</option>${S.brigadas.map(b => `<option value="${b.id}" ${b.id === payBrig ? "selected" : ""}>${esc(b.nombre)}</option>`).join("")}</select>
+      <select id="pMes" aria-label="Mes de pago"><option value="">Todos los meses</option>${meses.map(m => `<option value="${m}" ${m === payMes ? "selected" : ""}>${mesLabel(m)}</option>`).join("")}</select>
+    </div>
+    <div class="sec"><h3>Por pagar</h3><span class="count">${porPagar.length}</span></div>
+    ${sel.length ? `<div class="bulkbar"><b>${sel.length} seleccionada${sel.length > 1 ? "s" : ""}</b>${sum(sel) ? `<span class="money">${money(sum(sel))}</span>` : ""}<span class="spacer"></span>
+      <button class="btn small ghost" id="payClear" style="color:var(--bg);border-color:transparent">Quitar selección</button>
+      <button class="btn small primary" id="payBulk">${ic("money", "sm")}Marcar como pagadas</button></div>` : ""}
+    ${porPagar.length ? `<div class="paybox"><div class="prow head"><input type="checkbox" class="chk" id="pselAll" ${sel.length === porPagar.length ? "checked" : ""} aria-label="Seleccionar todas"><span>OT recepcionada</span><span>Monto</span><span></span></div>${porPagar.map(rowPend).join("")}</div>`
+      : emptyBox("checkc", "No hay OT recepcionadas pendientes de pago.")}
+    <div class="sec"><h3>Pagadas</h3><span class="count">${pagadas.length}</span></div>
+    ${pagadas.length ? `<div class="paybox">${paidHtml}</div>` : emptyBox("money", "Aún no hay OT pagadas.")}
+    ${Object.keys(emp).length ? `<div class="sec"><h3>Resumen por empresa</h3></div>
+    <div class="paybox" style="overflow-x:auto"><table class="sumtab"><thead><tr><th>Empresa</th><th class="r">Por pagar</th><th class="r">Monto pendiente</th><th class="r">Pagadas</th><th class="r">Monto pagado</th></tr></thead><tbody>
+      ${Object.entries(emp).sort((a, b) => a[0].localeCompare(b[0], "es")).map(([k, e]) => `<tr><td><b>${esc(k)}</b></td><td class="r">${e.pend.length}</td><td class="r money">${money(sum(e.pend))}</td><td class="r">${e.pag.length}</td><td class="r money">${money(sum(e.pag))}</td></tr>`).join("")}
+    </tbody></table></div>` : ""}`;
+}
+function openPago(ids) {
+  const list = ids.map(otById).filter(Boolean);
+  if (!list.length) return;
+  const f = document.getElementById("fPago");
+  f.dataset.ids = list.map(o => o.id).join(",");
+  const ref = list.length === 1 ? list[0].refPago || "" : "";
+  f.innerHTML = `<div class="dh"><h3>Registrar pago<small>${list.length === 1 ? "OT " + esc(list[0].numero) + " · " + esc(list[0].descripcion || "") : list.length + " OT seleccionadas"}</small></h3>${closeBtn}</div>
+    <div class="db">
+      <div class="grid2">
+        <label>Fecha de pago *<input type="date" name="fechaPago" required value="${dayKey(new Date())}"></label>
+        <label>N° estado de pago / factura / HES<input name="refPago" value="${esc(ref)}" placeholder="Ej: EP-2026-11"></label>
+      </div>
+      <div class="fs"><div class="lt">Montos (opcional)</div>
+        <div class="paylist">${list.map(o => `<div class="payitem"><div style="min-width:0"><b>OT ${esc(o.numero)}</b><small>${esc(o.descripcion || "")} · ${esc(brigById(o.brigadaId)?.nombre || "Sin brigada")}</small></div>
+          <input type="number" min="0" step="1" inputmode="numeric" class="pmonto" data-id="${o.id}" value="${esc(o.monto || "")}" placeholder="$ CLP"></div>`).join("")}</div>
+        <div class="total"><span>Total</span><span class="money" id="payTotal">${money(sum(list))}</span></div></div>
+    </div>
+    <div class="df"><span class="spacer"></span><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="save">${ic("check", "sm")}Marcar ${list.length > 1 ? "como pagadas" : "como pagada"}</button></div>`;
+  f.querySelectorAll(".pmonto").forEach(inp => inp.addEventListener("input", () => {
+    document.getElementById("payTotal").textContent = money([...f.querySelectorAll(".pmonto")].reduce((a, x) => a + (Number(x.value) || 0), 0));
+  }));
+  document.getElementById("dlgPago").showModal();
+}
+document.getElementById("dlgPago").addEventListener("close", e => {
+  if (e.target.returnValue !== "save") return;
+  const f = document.getElementById("fPago"), fecha = f.fechaPago.value || dayKey(new Date()), ref = f.refPago.value.trim();
+  const now = toLocalInput(new Date()); let n = 0;
+  for (const id of f.dataset.ids.split(",")) {
+    const o = otById(id); if (!o) continue;
+    const m = f.querySelector(`.pmonto[data-id="${id}"]`)?.value;
+    o.monto = m ? Math.max(0, Math.round(Number(m))) : "";
+    if (!o.fechaRecepcion) o.fechaRecepcion = now;
+    o.bitacora = [...(o.bitacora || []), { t: now, txt: `Estado: ${EST_LABEL[o.estado]} → Pagada${ref ? " · " + ref : ""}${o.monto ? " · " + money(o.monto) : ""}` }];
+    o.estado = "pagada"; o.fechaPago = fecha; o.refPago = ref; paySel.delete(id); n++;
+  }
+  save(); toast(n > 1 ? `${n} OT marcadas como pagadas` : "OT marcada como pagada");
+});
+function exportPagos() {
+  const L = S.ots.filter(o => o.estado === "pagada" && (!payBrig || o.brigadaId === payBrig) && (!payMes || (o.fechaPago || "").startsWith(payMes)))
+    .sort((a, b) => (a.fechaPago || "").localeCompare(b.fechaPago || ""));
+  if (!L.length) return toast("No hay OT pagadas para exportar");
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = L.map(o => { const b = brigById(o.brigadaId);
+    return [o.fechaPago, o.numero, isEmg(o) ? "Emergencia" : "Programada", o.descripcion, o.sector, b?.nombre, b?.empresa, (o.fechaRecepcion || "").replace("T", " "), o.refPago, o.monto].map(q).join(";"); });
+  rows.push(["", "", "", "", "", "", "", "", "TOTAL", sum(L)].map(q).join(";"));
+  download(`OT-pagadas-${payMes || dayKey(new Date())}.csv`, "﻿" + [["Fecha pago", "OT", "Tipo", "Descripcion", "Sector", "Brigada", "Empresa", "Fecha recepcion", "Ref. pago", "Monto"].map(q).join(";"), ...rows].join("\r\n"), "text/csv;charset=utf-8");
 }
 
 /* ======================= Ajustes ======================= */
@@ -765,15 +951,17 @@ function renderDatos() {
 /* ======================= Formularios ======================= */
 const closeBtn = `<button class="closex" value="cancel" formnovalidate aria-label="Cerrar">${ic("x")}</button>`;
 function openOT(id, preset = {}) {
-  const o = id ? otById(id) : { id: "", numero: "", descripcion: "", sector: "", brigadaId: S.brigadas[0]?.id || "", prioridad: "media", estado: "planificada", avance: 0, notas: "", bitacora: [], ...preset };
+  const o = id ? otById(id) : { id: "", numero: "", descripcion: "", sector: "", brigadaId: S.brigadas[0]?.id || "", prioridad: "media", estado: "planificada", tipo: "programada", avance: 0, notas: "", bitacora: [], ...preset };
+  const emg = isEmg(o);
   const f = document.getElementById("fOT");
   const tel = (brigById(o.brigadaId)?.telefono || "").replace(/[^\d]/g, "");
   f.innerHTML = `
-    <div class="dh"><h3>${id ? "OT " + esc(o.numero) : "Nueva OT"}${id ? `<small>${esc(o.descripcion || "")}</small>` : ""}</h3>${id ? `<span class="pill st-${o.estado}">${EST_LABEL[o.estado]}</span>` : ""}${closeBtn}</div>
+    <div class="dh"><h3>${id ? "OT " + esc(o.numero) : emg ? "Registrar emergencia" : "Nueva OT"}${id ? `<small>${esc(o.descripcion || "")}</small>` : emg ? `<small>Trabajo no programado</small>` : ""}</h3>${emg ? `<span class="pill emg">${ic("bolt")}Emergencia</span>` : ""}${id ? `<span class="pill st-${o.estado}">${EST_LABEL[o.estado]}</span>` : ""}${closeBtn}</div>
     <div class="db">
       <div class="fs"><div class="lt">Trabajo</div>
         <div class="grid2">
-          <label>N° OT *<input name="numero" required value="${esc(o.numero)}" autocomplete="off"></label>
+          <label>Tipo de trabajo<select name="tipo"><option value="programada" ${!emg ? "selected" : ""}>Programada</option><option value="emergencia" ${emg ? "selected" : ""}>Emergencia</option></select></label>
+          <label><span id="numLbl">${emg ? "N° OT (opcional)" : "N° OT *"}</span><input name="numero" ${emg ? "" : "required"} value="${esc(o.numero)}" autocomplete="off" placeholder="${emg ? "Se puede asignar después" : ""}"></label>
           <label>Sector / ubicación<input name="sector" list="dlSect" value="${esc(o.sector)}"><datalist id="dlSect">${sectores().map(s => `<option value="${esc(s)}">`).join("")}</datalist></label>
         </div>
         <label>Descripción<input name="descripcion" value="${esc(o.descripcion)}" placeholder="Ej: Cambio de rodamientos motor bomba P-301"></label>
@@ -781,10 +969,10 @@ function openOT(id, preset = {}) {
           <label>Brigada<select name="brigadaId"><option value="">— Sin asignar —</option>${S.brigadas.map(b => `<option value="${b.id}" ${b.id === o.brigadaId ? "selected" : ""}>${esc(b.nombre)}${b.empresa ? " · " + esc(b.empresa) : ""}</option>`).join("")}</select></label>
           <label>Prioridad<select name="prioridad">${["alta", "media", "baja"].map(p => `<option value="${p}" ${p === o.prioridad ? "selected" : ""}>${cap(p)}</option>`).join("")}</select></label>
         </div></div>
-      <div class="fs"><div class="lt">Planificación</div>
+      <div class="fs"><div class="lt" id="planLt">${emg ? "Horario de la emergencia" : "Planificación"}</div>
         <div class="grid2">
-          <label>Inicio planificado *<input type="datetime-local" name="inicioPlan" required value="${esc(o.inicioPlan || "")}"></label>
-          <label>Término planificado *<input type="datetime-local" name="finPlan" required value="${esc(o.finPlan || "")}"></label>
+          <label><span id="iniLbl">${emg ? "Inicio *" : "Inicio planificado *"}</span><input type="datetime-local" name="inicioPlan" required value="${esc(o.inicioPlan || "")}"></label>
+          <label><span id="finLbl">${emg ? "Término (si ya terminó)" : "Término planificado *"}</span><input type="datetime-local" name="finPlan" ${emg ? "" : "required"} value="${esc(o.finPlan || "")}"></label>
         </div></div>
       <div class="fs"><div class="lt">Ejecución</div>
         <div class="grid2">
@@ -794,6 +982,13 @@ function openOT(id, preset = {}) {
           <label>Término real<input type="datetime-local" name="finReal" value="${esc(o.finReal || "")}"></label>
         </div>
         <label>Notas (permisos, materiales, bloqueos, HH…)<textarea name="notas" rows="2">${esc(o.notas)}</textarea></label></div>
+      <div class="fs"><div class="lt">Recepción y pago</div>
+        <div class="grid2">
+          <label>Fecha recepción<input type="datetime-local" name="fechaRecepcion" value="${esc(o.fechaRecepcion || "")}"></label>
+          <label>Monto (CLP)<input type="number" name="monto" min="0" step="1" inputmode="numeric" value="${esc(o.monto || "")}" placeholder="Opcional"></label>
+          <label>Fecha de pago<input type="date" name="fechaPago" value="${esc(o.fechaPago || "")}"></label>
+          <label>N° estado de pago / factura / HES<input name="refPago" value="${esc(o.refPago || "")}" placeholder="Opcional"></label>
+        </div></div>
       ${id ? `<div class="fs"><div class="lt">Bitácora</div>
         <div class="row"><input id="logTxt" placeholder="Ej: brigada llegó 08:40, falta bloqueo eléctrico" style="flex:1"><button type="button" class="btn small go" id="logAdd">${ic("plus", "sm")}Agregar</button></div>
         <div class="log">${(o.bitacora || []).slice().reverse().map(l => `<div><time>${esc(fdt(l.t))}</time>${esc(l.txt)}</div>`).join("") || '<span class="note">Sin registros.</span>'}</div></div>` : ""}
@@ -811,13 +1006,22 @@ function openOT(id, preset = {}) {
   const dlg = document.getElementById("dlgOT");
   dlg.showModal();
   const ini = f.inicioPlan, fin = f.finPlan;
-  ini.addEventListener("change", () => { if (ini.value && (!fin.value || fin.value < ini.value)) { const d = D(ini.value); d.setHours(d.getHours() + 8); fin.value = toLocalInput(d); } });
+  ini.addEventListener("change", () => { if (f.tipo.value === "emergencia") return; if (ini.value && (!fin.value || fin.value < ini.value)) { const d = D(ini.value); d.setHours(d.getHours() + 8); fin.value = toLocalInput(d); } });
+  f.tipo.addEventListener("change", () => {
+    const e = f.tipo.value === "emergencia";
+    f.numero.required = !e; fin.required = !e;
+    f.numero.placeholder = e ? "Se puede asignar después" : "";
+    document.getElementById("numLbl").textContent = e ? "N° OT (opcional)" : "N° OT *";
+    document.getElementById("iniLbl").textContent = e ? "Inicio *" : "Inicio planificado *";
+    document.getElementById("finLbl").textContent = e ? "Término (si ya terminó)" : "Término planificado *";
+    document.getElementById("planLt").textContent = e ? "Horario de la emergencia" : "Planificación";
+  });
   if (id) {
     const add = () => { const v = document.getElementById("logTxt").value.trim(); if (!v) return; o.bitacora = [...(o.bitacora || []), { t: toLocalInput(new Date()), txt: v }]; persist(); dlg.close(); openOT(id); renderAll(); };
     document.getElementById("logAdd").onclick = add;
     document.getElementById("logTxt").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); add(); } });
     document.getElementById("delOT").onclick = () => { if (confirm(`¿Eliminar la OT ${o.numero}?`)) { S.ots = S.ots.filter(x => x.id !== id); dlg.close(); save(); toast("OT eliminada"); } };
-    document.getElementById("dupOT").onclick = () => { dlg.close(); openOT(null, { ...o, id: "", numero: o.numero + "-2", estado: "planificada", avance: 0, inicioReal: "", finReal: "", bitacora: [] }); };
+    document.getElementById("dupOT").onclick = () => { dlg.close(); openOT(null, { ...o, id: "", numero: o.numero + "-2", estado: "planificada", avance: 0, inicioReal: "", finReal: "", fechaRecepcion: "", fechaPago: "", refPago: "", monto: "", bitacora: [] }); };
   }
 }
 document.getElementById("dlgOT").addEventListener("close", e => {
@@ -825,23 +1029,50 @@ document.getElementById("dlgOT").addEventListener("close", e => {
   if (dlg.returnValue !== "save") return;
   const fd = Object.fromEntries(new FormData(f));
   const id = f.dataset.id;
+  const nowS = toLocalInput(new Date());
+  if (fd.tipo === "emergencia") {
+    if (!fd.numero.trim()) fd.numero = nextEmgNum(fd.inicioPlan);
+    if (!fd.inicioReal) fd.inicioReal = fd.inicioPlan;
+    if (!fd.finPlan) fd.finPlan = fd.finReal || fd.inicioPlan;
+    if (fd.finPlan && !fd.finReal && !ACTIVA(fd.estado)) fd.finReal = fd.finPlan;
+  }
   const dupe = S.ots.find(x => x.numero.trim() === fd.numero.trim() && x.id !== id);
   if (dupe && !confirm(`Ya existe la OT ${fd.numero}. ¿Guardar de todas formas?`)) return;
   if (fd.finPlan < fd.inicioPlan) { toast("El término era anterior al inicio; se ajustó."); fd.finPlan = fd.inicioPlan; }
   fd.avance = Math.max(0, Math.min(100, Number(fd.avance) || 0));
+  fd.monto = fd.monto ? Math.max(0, Math.round(Number(fd.monto))) : "";
+  const prev = id ? otById(id).estado : null;
+  if (prev === "pagada" && fd.estado !== "pagada") fd.fechaPago = "";
+  else if (fd.fechaPago && fd.estado === "recepcionada") fd.estado = "pagada";
+  if (fd.estado !== "pagada") fd.fechaPago = "";
+  else if (!fd.fechaPago) fd.fechaPago = dayKey(new Date());
+  if (CERRADA(fd.estado) && !fd.fechaRecepcion) fd.fechaRecepcion = nowS;
   if (id) {
     const o = otById(id);
-    if (o.estado !== fd.estado) o.bitacora = [...(o.bitacora || []), { t: toLocalInput(new Date()), txt: `Estado: ${EST_LABEL[o.estado]} → ${EST_LABEL[fd.estado]}` }];
+    if (o.estado !== fd.estado) o.bitacora = [...(o.bitacora || []), { t: nowS, txt: `Estado: ${EST_LABEL[o.estado]} → ${EST_LABEL[fd.estado]}` }];
     Object.assign(o, fd);
-  } else S.ots.push({ id: uid(), bitacora: [{ t: toLocalInput(new Date()), txt: "OT creada" }], ...fd });
-  save(); toast("OT guardada");
+  } else S.ots.push({ id: uid(), bitacora: [{ t: nowS, txt: fd.tipo === "emergencia" ? "Emergencia registrada" : "OT creada" }], ...fd });
+  save(); toast(fd.tipo === "emergencia" && !id ? "Emergencia registrada" : "OT guardada");
 });
+function nextEmgNum(ini) {
+  const d = D(ini) || new Date(), base = `EMG-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+  let n = 1; while (S.ots.some(o => o.numero === `${base}-${n}`)) n++;
+  return `${base}-${n}`;
+}
+function openEmg(day) {
+  const now = new Date();
+  let ini = now, estado = "ejecucion";
+  if (day && dayKey(day) !== dayKey(now)) { ini = new Date(day); ini.setHours(8, 0, 0, 0); if (day < now) estado = "terminada"; }
+  openOT(null, { tipo: "emergencia", estado, prioridad: "alta", inicioPlan: toLocalInput(ini), finPlan: "", brigadaId: calBrig || S.brigadas[0]?.id || "" });
+}
 function quick(id, to) {
   const o = otById(id); if (!o) return;
+  if (to === "pagada") { openPago([id]); return; }
   const now = toLocalInput(new Date());
   let txt = `Estado: ${EST_LABEL[o.estado]} → ${EST_LABEL[to]}`;
   if (to === "ejecucion" && !o.inicioReal) o.inicioReal = now;
-  if (to === "terminada") { o.finReal = now; o.avance = 100; }
+  if (to === "terminada") { o.finReal = now; o.avance = 100; if (isEmg(o) && D(o.finPlan) <= D(o.inicioPlan)) o.finPlan = now; }
+  if (to === "recepcionada") o.fechaRecepcion = now;
   o.estado = to; o.bitacora = [...(o.bitacora || []), { t: now, txt }];
   save(); toast(`OT ${o.numero}: ${EST_LABEL[to]}`);
 }
@@ -906,11 +1137,11 @@ function exportICS() {
 }
 
 /* ======================= CSV ======================= */
-const COLS = ["OT", "Descripcion", "Sector", "Brigada", "Empresa", "Prioridad", "Estado", "Inicio plan", "Termino plan", "Inicio real", "Termino real", "Avance %", "Notas"];
+const COLS = ["OT", "Tipo", "Descripcion", "Sector", "Brigada", "Empresa", "Prioridad", "Estado", "Inicio plan", "Termino plan", "Inicio real", "Termino real", "Avance %", "Fecha recepcion", "Fecha pago", "Ref pago", "Monto", "Notas"];
 function exportCSV() {
   const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`, f = s => s ? s.replace("T", " ") : "";
   const rows = S.ots.map(o => { const b = brigById(o.brigadaId);
-    return [o.numero, o.descripcion, o.sector, b?.nombre, b?.empresa, o.prioridad, EST_LABEL[o.estado], f(o.inicioPlan), f(o.finPlan), f(o.inicioReal), f(o.finReal), o.avance, o.notas].map(q).join(";"); });
+    return [o.numero, isEmg(o) ? "Emergencia" : "Programada", o.descripcion, o.sector, b?.nombre, b?.empresa, o.prioridad, EST_LABEL[o.estado], f(o.inicioPlan), f(o.finPlan), f(o.inicioReal), f(o.finReal), o.avance, f(o.fechaRecepcion), o.fechaPago, o.refPago, o.monto, o.notas].map(q).join(";"); });
   download(`OT-${dayKey(new Date())}.csv`, "﻿" + [COLS.map(q).join(";"), ...rows].join("\r\n"), "text/csv;charset=utf-8");
 }
 function parseCSV(text) {
@@ -947,14 +1178,16 @@ const ALIAS = {
   prioridad: ["prioridad"], estado: ["estado", "status"],
   inicioPlan: ["inicio", "inicioplan", "fechainicio", "iniplan", "inicioprogramado", "fechainicioplan", "desde"],
   finPlan: ["termino", "terminoplan", "fin", "finplan", "fechatermino", "fechafin", "hasta", "fechaterminoplan", "terminoprogramado"],
-  inicioReal: ["inicioreal"], finReal: ["terminoreal", "finreal"], avance: ["avance", "avance%", "%avance"], notas: ["notas", "observaciones", "obs", "comentarios"]
+  inicioReal: ["inicioreal"], finReal: ["terminoreal", "finreal"], avance: ["avance", "avance%", "%avance"], notas: ["notas", "observaciones", "obs", "comentarios"],
+  tipo: ["tipo", "tipotrabajo", "clase"], fechaRecepcion: ["fecharecepcion", "recepcion"], fechaPago: ["fechapago", "pago", "pagado"],
+  refPago: ["refpago", "ref", "estadodepago", "ep", "factura", "hes", "referencia"], monto: ["monto", "valor", "total", "montoclp", "precio"]
 };
 function importRows(rows) {
   if (rows.length < 2) return { n: 0, err: "Se necesita una fila de encabezados y al menos una OT." };
   const head = rows[0].map(norm), map = {};
   for (const [k, al] of Object.entries(ALIAS)) { const i = head.findIndex(h => al.map(norm).includes(h)); if (i >= 0) map[k] = i; }
   if (map.numero === undefined) return { n: 0, err: "No encontré la columna de N° de OT (encabezado “OT”)." };
-  const estMap = s => { const n = norm(s); return n.startsWith("ejec") || n.startsWith("enejec") || n.startsWith("curso") ? "ejecucion" : n.startsWith("deten") ? "detenida" : n.startsWith("termin") ? "terminada" : n.startsWith("recep") || n.startsWith("cerr") ? "recepcionada" : "planificada"; };
+  const estMap = s => { const n = norm(s); return n.startsWith("ejec") || n.startsWith("enejec") || n.startsWith("curso") ? "ejecucion" : n.startsWith("deten") ? "detenida" : n.startsWith("termin") ? "terminada" : n.startsWith("recep") || n.startsWith("cerr") ? "recepcionada" : n.startsWith("pag") ? "pagada" : "planificada"; };
   let nuevas = 0, act = 0;
   for (const r of rows.slice(1)) {
     const g = k => map[k] !== undefined ? (r[map[k]] || "").trim() : "";
@@ -966,11 +1199,15 @@ function importRows(rows) {
       brigadaId = b.id; }
     const data = { numero, descripcion: g("descripcion"), sector: g("sector"), prioridad: (["alta", "media", "baja"].find(p => norm(g("prioridad")).startsWith(p)) || "media"),
       estado: g("estado") ? estMap(g("estado")) : "planificada", inicioPlan: parseDate(g("inicioPlan")), finPlan: parseDate(g("finPlan"), true),
-      inicioReal: parseDate(g("inicioReal")), finReal: parseDate(g("finReal"), true), avance: parseInt(g("avance")) || 0, notas: g("notas") };
+      inicioReal: parseDate(g("inicioReal")), finReal: parseDate(g("finReal"), true), avance: parseInt(g("avance")) || 0, notas: g("notas"),
+      tipo: norm(g("tipo")).startsWith("emerg") ? "emergencia" : g("tipo") ? "programada" : "",
+      fechaRecepcion: parseDate(g("fechaRecepcion"), true), fechaPago: parseDate(g("fechaPago")).slice(0, 10), refPago: g("refPago"),
+      monto: g("monto") ? (Number(g("monto").replace(/[^\d,]/g, "").replace(",", ".")) || "") : "" };
+    if (data.fechaPago && (!g("estado") || data.estado === "recepcionada")) data.estado = "pagada";
     if (!data.finPlan) data.finPlan = data.inicioPlan;
     const ex = S.ots.find(o => o.numero.trim() === numero);
     if (ex) { for (const k in data) if (data[k] !== "" && !(k === "avance" && !g("avance"))) ex[k] = data[k]; if (bn) ex.brigadaId = brigadaId; act++; }
-    else { S.ots.push({ id: uid(), brigadaId, bitacora: [{ t: toLocalInput(new Date()), txt: "Importada desde planilla" }], ...data }); nuevas++; }
+    else { if (!data.tipo) data.tipo = "programada"; S.ots.push({ id: uid(), brigadaId, bitacora: [{ t: toLocalInput(new Date()), txt: "Importada desde planilla" }], ...data }); nuevas++; }
   }
   return { n: nuevas + act, nuevas, act };
 }
@@ -998,6 +1235,8 @@ function checkNotifs() {
   const badge = document.getElementById("alertBadge");
   const nBad = A.filter(a => a.sev === "bad").length;
   badge.hidden = !nBad; badge.textContent = nBad;
+  const nPay = S.ots.filter(o => o.estado === "recepcionada").length, pb = document.getElementById("payBadge");
+  pb.hidden = !nPay; pb.textContent = nPay;
   document.title = (nBad ? `(${nBad}) ` : "") + "Asistente Inspector";
   if (!S.ajustes.notif || !("Notification" in window) || Notification.permission !== "granted") return;
   const today = dayKey(new Date()); let changed = false;
@@ -1030,7 +1269,14 @@ function loadDemo() {
     ot("4501235", "Cambio de válvula de control FV-210", "Flotación", 2, at(-3, 8), at(-2, 17), "terminada", "media", 100, { finReal: at(-2, 16) }),
     ot("4501236", "Revisión malla a tierra y medición de resistencia", "Subestación 2", 0, at(4, 8), at(5, 17), "planificada", "media"),
     ot("4501237", "Reparación filtración reductor molino", "Molienda", 1, at(-1, 8), at(1, 17), "detenida", "alta", 30, { bitacora: [{ t: at(-1, 11), txt: "Detenida: falta repuesto (sello) en bodega" }] }),
+    ot("EMG-1", "Falla eléctrica en alimentador correa CV-02, cambio de contactor", "Planta Chancado", 0, at(0, 6), at(0, 6), "ejecucion", "alta", 50, { tipo: "emergencia" }),
+    ot("EMG-2", "Rotura de cañería de agua de proceso", "Flotación", 1, at(-3, 22), at(-2, 2), "recepcionada", "alta", 100, { tipo: "emergencia", finReal: at(-2, 2), fechaRecepcion: at(-2, 10), monto: 850000 }),
+    ot("4501220", "Cambio de luminarias acceso norte", "Taller Central", 0, at(-10, 8), at(-9, 17), "recepcionada", "baja", 100, { fechaRecepcion: at(-8, 10), monto: 1250000 }),
+    ot("4501221", "Mantención preventiva bomba P-205", "Flotación", 2, at(-12, 8), at(-12, 17), "recepcionada", "media", 100, { fechaRecepcion: at(-11, 10), monto: 640000 }),
+    ot("4501210", "Termografía tableros sala eléctrica 1", "Subestación 2", 0, at(-20, 8), at(-20, 17), "pagada", "media", 100, { fechaRecepcion: at(-19, 10), fechaPago: dayKey(addDays(t0, -5)), refPago: "EP-11-01", monto: 980000 }),
+    ot("4501211", "Cambio de correa transportadora CV-01", "Planta Chancado", 1, at(-40, 8), at(-38, 17), "pagada", "alta", 100, { fechaRecepcion: at(-37, 10), fechaPago: dayKey(addDays(t0, -30)), refPago: "EP-10-03", monto: 3400000 }),
   ];
+  S.ots.forEach(o => { o.tipo ||= "programada"; if (o.tipo === "emergencia") o.numero = nextEmgNum(o.inicioPlan); });
   save(); toast("Datos de ejemplo cargados");
 }
 
@@ -1039,23 +1285,25 @@ let view = "hoy";
 function go(v) {
   view = v;
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.view === v));
-  ["hoy", "ots", "cal", "brig", "datos"].forEach(x => document.getElementById("v-" + x).hidden = x !== v);
+  ["hoy", "ots", "cal", "brig", "pagos", "datos"].forEach(x => document.getElementById("v-" + x).hidden = x !== v);
   renderAll(); window.scrollTo({ top: 0 });
 }
 function renderAll() {
   fillFilters();
-  ({ hoy: renderHoy, ots: renderOTs, cal: renderCal, brig: renderBrig, datos: renderDatos })[view]();
+  ({ hoy: renderHoy, ots: renderOTs, cal: renderCal, brig: renderBrig, pagos: renderPagos, datos: renderDatos })[view]();
   checkNotifs();
 }
 document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("button[data-view]"); if (b) { if (b.dataset.view === "ots") otPreset = null; go(b.dataset.view); } });
 document.body.addEventListener("click", e => {
   const t = e.target;
   const q = t.closest("[data-quick]"); if (q) { e.stopPropagation(); quick(q.dataset.quick, q.dataset.to); return; }
-  if (t.closest("a")) return;
+  if (t.closest("a") || t.closest(".chk")) return;
+  const em = t.closest("[data-emg]"); if (em) { openEmg(em.dataset.emg === "day" ? calSel : null); return; }
   const card = t.closest("[data-ot]"); if (card) { openOT(card.dataset.ot); return; }
   const kpi = t.closest("[data-filter]");
+  if (kpi && kpi.dataset.filter === "porpagar") { go("pagos"); return; }
   if (kpi) { const f = kpi.dataset.filter; otPreset = null;
-    document.getElementById("fText").value = ""; document.getElementById("fBrig").value = ""; document.getElementById("fSector").value = "";
+    document.getElementById("fText").value = ""; document.getElementById("fBrig").value = ""; document.getElementById("fSector").value = ""; document.getElementById("fTipo").value = "";
     if (["ejecucion", "terminada"].includes(f)) document.getElementById("fEstado").value = f;
     else { document.getElementById("fEstado").value = ""; otPreset = f; }
     go("ots"); return; }
@@ -1066,6 +1314,7 @@ document.body.addEventListener("click", e => {
   const id = t.closest("button,label")?.id;
   const act = {
     demoBtn: loadDemo, addBrig: () => openBrig(), icsBtn: exportICS, csvBtn: exportCSV, impBtn: openImport,
+    payBulk: () => openPago([...paySel]), payClear: () => { paySel.clear(); renderPagos(); }, payCsv: exportPagos,
     bakBtn: () => download(`respaldo-inspector-${dayKey(new Date())}.json`, JSON.stringify(S, null, 1), "application/json"),
     wipeBtn: () => { if (confirm("¿Borrar TODAS las OT y brigadas de este navegador? Descarga un respaldo antes si lo necesitas.")) { S = blank(); save(); toast("Datos borrados"); } },
     notifBtn: async () => {
@@ -1097,7 +1346,11 @@ document.body.addEventListener("change", e => {
       catch (err) { toast("Archivo de respaldo no válido"); } };
     r.readAsText(file);
   }
-  if (["fEstado", "fBrig", "fSector"].includes(id)) renderOTs();
+  if (["fEstado", "fBrig", "fSector", "fTipo"].includes(id)) renderOTs();
+  if (e.target.classList.contains("psel")) { e.target.checked ? paySel.add(e.target.dataset.id) : paySel.delete(e.target.dataset.id); renderPagos(); }
+  if (id === "pselAll") { const ids = S.ots.filter(o => o.estado === "recepcionada" && (!payBrig || o.brigadaId === payBrig)).map(o => o.id); paySel.clear(); if (e.target.checked) ids.forEach(x => paySel.add(x)); renderPagos(); }
+  if (id === "pBrig") { payBrig = e.target.value; paySel.clear(); renderPagos(); }
+  if (id === "pMes") { payMes = e.target.value; renderPagos(); }
   if (id === "calBrig") { calBrig = e.target.value; renderCal(); }
 });
 document.getElementById("fText").addEventListener("input", renderOTs);
