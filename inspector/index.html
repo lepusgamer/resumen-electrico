@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1d2c">
+<title>Asistente Inspector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f3f5f8; --surface: #ffffff; --sunken: #eef2f6; --ink: #101924; --muted: #5b6876; --line: #dfe5ec;
+  --accent: #1d5cc0; --accent-ink: #ffffff; --accent-soft: rgba(29,92,192,.10);
+  --bad: #c8372d; --bad-soft: rgba(200,55,45,.10);
+  --warn: #a96500; --warn-soft: rgba(214,140,20,.14);
+  --ok: #16804a; --ok-soft: rgba(22,128,74,.11);
+  --bar: #0f1d2c; --bar-ink: #eaf0f5; --bar-muted: #93a6b8; --bar-line: rgba(255,255,255,.10);
+  --shadow: 0 1px 2px rgba(16,24,40,.05), 0 2px 8px rgba(16,24,40,.05);
+  --shadow-hover: 0 2px 4px rgba(16,24,40,.06), 0 8px 20px rgba(16,24,40,.08);
+  --shadow-lg: 0 16px 40px rgba(16,24,40,.22);
+  --f-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1117; --surface: #131c25; --sunken: #1a2530; --ink: #e4ebf1; --muted: #93a4b3; --line: #253340;
+    --accent: #74a9ff; --accent-ink: #0b1117; --accent-soft: rgba(116,169,255,.14);
+    --bad: #ff7a6e; --bad-soft: rgba(255,122,110,.14); --warn: #f0b052; --warn-soft: rgba(240,176,82,.14);
+    --ok: #52d08f; --ok-soft: rgba(82,208,143,.14); --bar: #080e14; --bar-line: rgba(255,255,255,.07);
+    --shadow: 0 1px 0 rgba(0,0,0,.35); --shadow-hover: 0 4px 16px rgba(0,0,0,.4); --shadow-lg: 0 16px 40px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1117; --surface: #131c25; --sunken: #1a2530; --ink: #e4ebf1; --muted: #93a4b3; --line: #253340;
+  --accent: #74a9ff; --accent-ink: #0b1117; --accent-soft: rgba(116,169,255,.14);
+  --bad: #ff7a6e; --bad-soft: rgba(255,122,110,.14); --warn: #f0b052; --warn-soft: rgba(240,176,82,.14);
+  --ok: #52d08f; --ok-soft: rgba(82,208,143,.14); --bar: #080e14; --bar-line: rgba(255,255,255,.07);
+  --shadow: 0 1px 0 rgba(0,0,0,.35); --shadow-hover: 0 4px 16px rgba(0,0,0,.4); --shadow-lg: 0 16px 40px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--f-body); padding-bottom: 96px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right)); }
+.i { width: 18px; height: 18px; flex: none; }
+.i.sm { width: 15px; height: 15px; }
+.i.lg { width: 22px; height: 22px; }
+
+/* ---------- Barra superior ---------- */
+.appbar { background: var(--bar); color: var(--bar-ink); position: sticky; top: 0; z-index: 20; }
+.appbar .wrap { display: flex; align-items: center; gap: 14px; min-height: 64px; }
+.logo { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: linear-gradient(145deg, #2f74e0, #1a4fa8); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.2); flex: none; }
+.brand h1 { font: 700 1.35rem/1 var(--f-display); letter-spacing: .04em; text-transform: uppercase; margin: 0; }
+.brand small { color: var(--bar-muted); font-size: .78rem; }
+.appbar .tabs { display: flex; gap: 2px; margin-left: 20px; }
+.appbar .tabs button { position: relative; display: flex; align-items: center; gap: 7px; border: 0; background: none; color: var(--bar-muted); padding: 8px 12px; border-radius: 9px; cursor: pointer; font: 600 .98rem var(--f-display); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.appbar .tabs button:hover { color: var(--bar-ink); background: var(--bar-line); }
+.appbar .tabs button[aria-selected="true"] { color: #fff; background: rgba(116,169,255,.18); }
+.appbar .tabs button[aria-selected="true"] .i { color: #8db8ff; }
+.badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: #e5483c; color: #fff; font: 700 .7rem/18px var(--f-body); text-align: center; letter-spacing: 0; }
+.appbar .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.clock { font: 600 .95rem var(--f-mono); color: var(--bar-ink); background: var(--bar-line); padding: 5px 10px; border-radius: 8px; }
+.iconbtn { width: 36px; height: 36px; border-radius: 9px; border: 0; background: var(--bar-line); color: var(--bar-ink); display: grid; place-items: center; cursor: pointer; }
+.iconbtn:hover { background: rgba(255,255,255,.18); }
+@media (max-width: 860px) {
+  .appbar .tabs { position: fixed; left: 0; right: 0; bottom: 0; margin: 0; background: var(--surface); border-top: 1px solid var(--line); justify-content: space-around; padding: 6px 4px max(6px, env(safe-area-inset-bottom)); z-index: 30; box-shadow: 0 -4px 16px rgba(0,0,0,.06); }
+  .appbar .tabs button { flex-direction: column; gap: 2px; font-size: .68rem; padding: 6px 2px; color: var(--muted); flex: 1; min-width: 0; letter-spacing: .02em; }
+  .appbar .tabs button:hover { background: none; color: var(--ink); }
+  .appbar .tabs button[aria-selected="true"] { background: none; color: var(--accent); }
+  .appbar .tabs button[aria-selected="true"] .i { color: var(--accent); }
+  .appbar .tabs .badge { position: absolute; top: 0; left: calc(50% + 6px); }
+  .appbar .tabs .i { width: 22px; height: 22px; }
+}
+@media (max-width: 420px) { .brand small { display: none; } .clock { display: none; } }
+
+/* ---------- Tipografía y estructura ---------- */
+main { padding-top: 20px; }
+.hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.hero h2 { font: 700 2rem/1.05 var(--f-display); margin: 0; letter-spacing: .01em; }
+.hero p { margin: 4px 0 0; color: var(--muted); }
+.hero p b { color: var(--ink); }
+.sec { display: flex; align-items: center; gap: 8px; margin: 28px 0 12px; }
+.sec h3 { font: 700 1.15rem/1.2 var(--f-display); text-transform: uppercase; letter-spacing: .05em; margin: 0; }
+.sec .count { font: 700 .75rem/1 var(--f-body); background: var(--sunken); color: var(--muted); padding: 4px 8px; border-radius: 99px; }
+.sec .spacer { flex: 1; }
+.cols { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 24px; align-items: start; }
+@media (max-width: 960px) { .cols { grid-template-columns: 1fr; } }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.spacer { flex: 1; }
+.list { display: grid; gap: 10px; }
+.note { color: var(--muted); font-size: .88rem; }
+[hidden] { display: none !important; }
+
+/* ---------- Botones ---------- */
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 700; font-size: .9rem; display: inline-flex; align-items: center; gap: 7px; text-decoration: none; color: var(--ink); transition: border-color .15s, background .15s, transform .1s; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 5px 10px; font-size: .8rem; border-radius: 8px; gap: 5px; }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--bad); }
+.btn.go { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.btn.go:hover { background: var(--accent); color: var(--accent-ink); }
+
+/* ---------- KPIs ---------- */
+.kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.hero .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 560px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { --k: var(--accent); --ks: var(--accent-soft); position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; cursor: pointer; text-align: left; display: grid; grid-template-columns: 1fr auto; align-items: start; box-shadow: var(--shadow); transition: box-shadow .15s, transform .15s; }
+.kpi:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+.kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--k); }
+.kpi b { display: block; font: 700 2.4rem/1 var(--f-display); color: var(--ink); }
+.kpi span { color: var(--muted); font-size: .84rem; font-weight: 700; }
+.kpi .ki { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--ks); color: var(--k); }
+.kpi.bad { --k: var(--bad); --ks: var(--bad-soft); } .kpi.bad b { color: var(--bad); }
+.kpi.warn { --k: var(--warn); --ks: var(--warn-soft); }
+.kpi.ok { --k: var(--ok); --ks: var(--ok-soft); }
+.kpi.zero b { color: var(--muted); }
+
+/* ---------- Alertas ---------- */
+.agroup { margin-bottom: 14px; }
+.agroup > .lbl { display: flex; align-items: center; gap: 6px; font: 700 .75rem var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px 2px; }
+.agroup > .lbl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.alert { --c: var(--accent); --cs: var(--accent-soft); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; box-shadow: var(--shadow); transition: box-shadow .15s; }
+.alert:hover { box-shadow: var(--shadow-hover); }
+.alert .ai { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--cs); color: var(--c); }
+.alert .at { font-weight: 700; line-height: 1.3; }
+.alert .at .n { font-family: var(--f-mono); font-weight: 600; font-size: .88rem; color: var(--c); margin-right: 4px; }
+.alert small { color: var(--muted); display: block; font-size: .83rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bad { --c: var(--bad); --cs: var(--bad-soft); }
+.warn { --c: var(--warn); --cs: var(--warn-soft); }
+.info { --c: var(--accent); --cs: var(--accent-soft); }
+.okc { --c: var(--ok); --cs: var(--ok-soft); }
+.allgood { display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: var(--r); background: var(--ok-soft); color: var(--ok); font-weight: 700; }
+.allgood .i { width: 28px; height: 28px; }
+
+/* ---------- Tarjeta OT ---------- */
+.ot { --b: var(--line); position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px 14px 20px; cursor: pointer; box-shadow: var(--shadow); transition: box-shadow .15s, transform .15s; overflow: hidden; }
+.ot:hover { box-shadow: var(--shadow-hover); }
+.ot::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--b); }
+.ot-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ot .num { font: 600 .9rem var(--f-mono); color: var(--muted); margin-right: 2px; }
+.ot .desc { font-weight: 700; font-size: 1.02rem; line-height: 1.35; margin: 6px 0 8px; }
+.ot-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.meta { color: var(--muted); font-size: .85rem; display: flex; gap: 6px 16px; flex-wrap: wrap; align-items: center; }
+.meta > span { display: inline-flex; align-items: center; gap: 5px; }
+.av { width: 22px; height: 22px; border-radius: 50%; background: var(--b); color: #fff; display: inline-grid; place-items: center; font: 700 .62rem var(--f-body); letter-spacing: -.02em; flex: none; }
+.av.lg { width: 44px; height: 44px; font-size: .95rem; border-radius: 13px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 99px; font-size: .74rem; font-weight: 700; white-space: nowrap; line-height: 1.5; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.st-planificada { background: var(--accent-soft); color: var(--accent); }
+.st-ejecucion { background: var(--ok-soft); color: var(--ok); }
+.st-detenida { background: var(--warn-soft); color: var(--warn); }
+.st-terminada { background: rgba(138,79,208,.13); color: #8a4fd0; }
+.st-recepcionada { background: var(--sunken); color: var(--muted); }
+:root[data-theme="dark"] .st-terminada { color: #b88cf0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .st-terminada { color: #b88cf0; } }
+.prio { font: 700 .7rem var(--f-body); text-transform: uppercase; letter-spacing: .06em; padding: 2px 7px; border-radius: 6px; border: 1px solid; }
+.pr-alta { color: var(--bad); border-color: currentColor; }
+.pr-media { color: var(--warn); border-color: currentColor; opacity: .85; }
+.pr-baja { color: var(--muted); border-color: var(--line); }
+.due { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font: 700 .8rem var(--f-body); padding: 4px 10px; border-radius: 8px; background: var(--cs, var(--sunken)); color: var(--c, var(--muted)); white-space: nowrap; }
+.due.muted { --c: var(--muted); --cs: var(--sunken); }
+.bar { flex: 1; height: 6px; background: var(--sunken); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--ok); border-radius: 3px; }
+.pct { font: 600 .78rem var(--f-mono); color: var(--muted); min-width: 34px; text-align: right; }
+.ot-foot .btn { margin-left: auto; }
+
+/* ---------- Agenda ---------- */
+.agenda { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+.agenda .dayh { display: flex; align-items: baseline; gap: 10px; padding: 10px 16px; background: var(--sunken); font: 700 .95rem var(--f-display); text-transform: uppercase; letter-spacing: .05em; }
+.agenda .dayh small { font: 400 .8rem var(--f-body); color: var(--muted); text-transform: none; letter-spacing: 0; }
+.agenda .it { --b: var(--line); display: grid; grid-template-columns: 52px 4px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); cursor: pointer; }
+.agenda .it:hover { background: var(--sunken); }
+.agenda .t { font: 600 .85rem var(--f-mono); }
+.agenda .ln { align-self: stretch; border-radius: 2px; background: var(--b); }
+.agenda .it b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agenda .it small { color: var(--muted); }
+
+.empty { color: var(--muted); padding: 28px 16px; text-align: center; border: 1.5px dashed var(--line); border-radius: var(--r); display: grid; place-items: center; gap: 6px; }
+.empty .i { width: 28px; height: 28px; opacity: .6; }
+
+/* ---------- Filtros ---------- */
+.toolbar { display: grid; grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+@media (max-width: 760px) { .toolbar { grid-template-columns: 1fr 1fr; } .toolbar .search { grid-column: 1 / -1; } }
+.search { position: relative; }
+.search .i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search input { padding-left: 38px; }
+input, select, textarea { font-weight: 400; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; width: 100%; min-width: 0; transition: border-color .15s, box-shadow .15s; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea { resize: vertical; }
+label { display: grid; gap: 5px; font-size: .8rem; color: var(--muted); font-weight: 700; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+.chipbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 12px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .85rem; }
+.fchip button { border: 0; background: var(--accent); color: var(--accent-ink); width: 20px; height: 20px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; padding: 0; }
+
+/* ---------- Calendario ---------- */
+.calhead { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.calhead .title { font: 700 1.7rem/1 var(--f-display); min-width: 200px; }
+.calhead select { width: auto; }
+.calwrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cal .dow { text-align: center; font: 700 .75rem var(--f-body); text-transform: uppercase; letter-spacing: .08em; padding: 10px 4px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.cal .day { background: transparent; min-height: 112px; padding: 6px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; overflow: hidden; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: left; transition: background .12s; }
+.cal .day:nth-child(7n) { border-right: 0; }
+.cal .day:hover { background: var(--sunken); }
+.cal .day.out { background: repeating-linear-gradient(135deg, transparent 0 6px, var(--sunken) 6px 7px); }
+.cal .day.out .dn { color: var(--muted); opacity: .6; }
+.cal .day.we:not(.out) { background: color-mix(in srgb, var(--sunken) 55%, transparent); }
+.cal .dn { font: 600 .82rem var(--f-mono); width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; margin-bottom: 2px; }
+.cal .day.today .dn { background: var(--accent); color: var(--accent-ink); }
+.cal .day.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+.chip { --b: #7a8791; display: flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 700; line-height: 1.35; padding: 2px 6px 2px 5px; border-radius: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); background: color-mix(in srgb, var(--b) 16%, var(--surface)); border-left: 3px solid var(--b); }
+.chip .x { width: 6px; height: 6px; border-radius: 50%; background: var(--bad); flex: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--bad) 30%, transparent); }
+.chip span { overflow: hidden; text-overflow: ellipsis; }
+.more { font-size: .72rem; color: var(--muted); font-weight: 700; padding-left: 4px; }
+@media (max-width: 640px) {
+  .cal .day { min-height: 58px; flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 3px; padding: 4px; }
+  .cal .dn { width: 100%; height: 22px; border-radius: 6px; }
+  .cal .day.today .dn { width: 22px; border-radius: 50%; }
+  .chip { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: var(--b); font-size: 0; }
+  .chip .x, .chip span, .chip .bz { display: none; }
+  .chip.emgc { box-shadow: 0 0 0 2px var(--bad); }
+  .more { display: none; }
+  .calhead .title { font-size: 1.4rem; min-width: 0; flex: 1; }
+}
+.legend { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: .84rem; margin: 12px 2px 0; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; }
+
+/* ---------- Brigadas ---------- */
+.loadwrap { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 14px; overflow-x: auto; }
+.load { display: grid; grid-template-columns: minmax(120px, 190px) repeat(14, minmax(28px, 1fr)); gap: 4px; font-size: .75rem; align-items: stretch; min-width: 560px; }
+.load .h { text-align: center; color: var(--muted); font: 600 .7rem/1.25 var(--f-mono); padding-bottom: 4px; }
+.load .h b { display: block; font-size: .85rem; color: var(--ink); }
+.load .h.we b { color: var(--bad); }
+.load .h.tod b { color: var(--accent); }
+.load .name { display: flex; align-items: center; gap: 8px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .85rem; }
+.load .c { border-radius: 7px; background: var(--sunken); display: grid; place-items: center; font: 700 .75rem var(--f-mono); min-height: 32px; }
+.load .c.n1 { background: color-mix(in srgb, var(--b) 75%, var(--surface)); color: #fff; }
+.load .c.n2 { background: var(--bad); color: #fff; box-shadow: 0 0 0 2px var(--bad-soft); }
+.bgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+@media (max-width: 400px) { .bgrid { grid-template-columns: 1fr; } }
+.bcard { --b: var(--accent); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px; display: grid; gap: 14px; border-top: 4px solid var(--b); }
+.bcard .bh { display: flex; gap: 12px; align-items: center; }
+.bcard h4 { margin: 0; font: 700 1.2rem/1.15 var(--f-display); letter-spacing: .02em; }
+.bcard .sub { color: var(--muted); font-size: .85rem; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.stat { background: var(--sunken); border-radius: 10px; padding: 8px; text-align: center; }
+.stat b { display: block; font: 700 1.4rem/1 var(--f-display); }
+.stat span { font-size: .7rem; color: var(--muted); font-weight: 700; }
+.stat.bad b { color: var(--bad); }
+
+/* ---------- Ajustes ---------- */
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 14px; }
+@media (max-width: 400px) { .panels { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 18px; display: grid; gap: 14px; align-content: start; }
+.panel .ph { display: flex; gap: 12px; align-items: center; }
+.panel .ph .ai { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--cs); color: var(--c); }
+.panel h4 { margin: 0; font: 700 1.15rem var(--f-display); text-transform: uppercase; letter-spacing: .04em; }
+.panel p { margin: 0; }
+
+/* ---------- Bienvenida ---------- */
+.welcome { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 28px; display: grid; gap: 18px; max-width: 760px; }
+.welcome h2 { font: 700 2rem/1.1 var(--f-display); margin: 0; }
+.steps { display: grid; gap: 10px; }
+.step { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; }
+.step .ai { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--cs); color: var(--c); }
+
+/* ---------- Diálogos ---------- */
+dialog { border: 0; border-radius: 18px; padding: 0; width: min(720px, calc(100vw - 20px)); max-height: calc(100dvh - 20px); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lg); }
+dialog::backdrop { background: rgba(8,14,20,.55); backdrop-filter: blur(2px); }
+dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 20px); }
+.dh { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.dh h3 { flex: 1; margin: 0; font: 700 1.45rem/1.1 var(--f-display); }
+.dh h3 small { display: block; font: 400 .82rem var(--f-body); color: var(--muted); }
+.db { padding: 18px 20px; overflow-y: auto; display: grid; gap: 14px; }
+.df { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px 20px; border-top: 1px solid var(--line); background: var(--sunken); }
+.fs { display: grid; gap: 12px; }
+.fs > .lt { font: 700 .75rem var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.fs > .lt::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.closex { width: 34px; height: 34px; border-radius: 9px; border: 0; background: var(--sunken); display: grid; place-items: center; cursor: pointer; color: var(--muted); }
+.log { display: grid; gap: 0; max-height: 220px; overflow: auto; }
+.log div { position: relative; font-size: .88rem; padding: 0 0 12px 20px; }
+.log div::before { content: ""; position: absolute; left: 4px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.log div::after { content: ""; position: absolute; left: 7.5px; top: 16px; bottom: 0; width: 1px; background: var(--line); }
+.log div:last-child::after { display: none; }
+.log time { font: .74rem var(--f-mono); color: var(--muted); display: block; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 10px); background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 12px; font-weight: 700; z-index: 60; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; max-width: calc(100vw - 32px); display: flex; gap: 8px; align-items: center; box-shadow: var(--shadow-lg); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.fab { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); height: 56px; padding: 0 22px 0 18px; border-radius: 16px; font-size: 1rem; box-shadow: 0 8px 24px rgba(29,92,192,.4); z-index: 25; }
+.fab .i { width: 22px; height: 22px; }
+@media (max-width: 860px) {
+  .fab { bottom: calc(78px + env(safe-area-inset-bottom)); width: 56px; padding: 0; justify-content: center; }
+  .fab span { display: none; }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  body { padding-bottom: 150px; }
+}
+/* ---------- Emergencias y pagos ---------- */
+.btn.emg { background: var(--bad); border-color: var(--bad); color: #fff; }
+.btn.emg:hover { filter: brightness(1.08); border-color: var(--bad); }
+.pill.emg { background: var(--bad); color: #fff; }
+.pill.emg::before { display: none; }
+.pill.emg .i { width: 12px; height: 12px; }
+.chip .bz { width: 11px; height: 11px; flex: none; color: var(--bad); }
+.chip.closed { opacity: .55; }
+.chip.emgc { border-left-style: dashed; }
+.badge.n { background: var(--accent); color: var(--accent-ink); }
+.money { font: 600 .9rem var(--f-mono); white-space: nowrap; }
+.paybox { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+.prow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid var(--line); cursor: pointer; }
+.prow:first-child { border-top: 0; }
+.prow:hover { background: var(--sunken); }
+.prow.head { cursor: default; background: var(--sunken); font: 700 .75rem var(--f-body); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.prow b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow small { color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow.paid { grid-template-columns: 74px minmax(0, 1fr) auto auto; }
+.prow .fp { font: 600 .82rem var(--f-mono); color: var(--muted); }
+.prow .ref { font-size: .8rem; color: var(--muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prow .fp { white-space: nowrap; }
+@media (max-width: 600px) {
+  .prow { padding: 11px 12px; gap: 10px; }
+  .prow b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: .9rem; line-height: 1.3; }
+  .prow .ref { display: none; } .prow.paid { grid-template-columns: 62px minmax(0, 1fr) auto; } .prow.paid > :last-child { display: none; }
+  .prow .fp { font-size: .74rem; }
+  .prow:not(.paid):not(.head) { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .prow:not(.paid):not(.head) .money { grid-column: 2; grid-row: 2; justify-self: start; }
+  .prow:not(.paid):not(.head) .btn { grid-column: 3; grid-row: 1 / span 2; }
+  .prow.head { grid-template-columns: auto 1fr; } .prow.head span:nth-child(n+3) { display: none; }
+}
+.chk { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; padding: 0; }
+.mhead { display: flex; align-items: baseline; gap: 10px; padding: 10px 16px; background: var(--sunken); border-top: 1px solid var(--line); font: 700 .95rem var(--f-display); text-transform: uppercase; letter-spacing: .05em; }
+.mhead:first-child { border-top: 0; }
+.mhead small { font: 400 .8rem var(--f-body); color: var(--muted); text-transform: none; letter-spacing: 0; }
+.mhead .money { margin-left: auto; }
+.bulkbar { position: sticky; top: 72px; z-index: 6; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 10px; border-radius: 12px; background: var(--ink); color: var(--bg); box-shadow: var(--shadow-lg); }
+.bulkbar .money { color: var(--bg); }
+@media (max-width: 860px) { .bulkbar { top: 72px; } }
+.sumtab { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.sumtab th { text-align: left; font: 700 .72rem var(--f-body); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); padding: 10px 14px; background: var(--sunken); }
+.sumtab td { padding: 10px 14px; border-top: 1px solid var(--line); }
+.sumtab .r { text-align: right; }
+.paylist { display: grid; gap: 8px; max-height: 280px; overflow: auto; }
+.payitem { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 10px; align-items: center; }
+.payitem b { display: block; font-size: .9rem; } .payitem small { color: var(--muted); }
+.total { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 10px; background: var(--ok-soft); color: var(--ok); font-weight: 700; }
+.st-recepcionada { background: rgba(15,138,148,.13); color: #0d7f88; }
+.st-pagada { background: var(--sunken); color: var(--muted); }
+:root[data-theme="dark"] .st-recepcionada { color: #4cc9d2; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .st-recepcionada { color: #4cc9d2; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="appbar">
+  <div class="wrap">
+    <div class="logo"><span data-ic="wrench" class="lg"></span></div>
+    <div class="brand"><h1>Asistente Inspector</h1><small>Control de OT y brigadas contratistas</small></div>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button role="tab" data-view="hoy" aria-selected="true"><span data-ic="home"></span>Hoy<span class="badge" id="alertBadge" hidden></span></button>
+      <button role="tab" data-view="ots"><span data-ic="list"></span>Órdenes</button>
+      <button role="tab" data-view="cal"><span data-ic="cal"></span>Calendario</button>
+      <button role="tab" data-view="brig"><span data-ic="users"></span>Brigadas</button>
+      <button role="tab" data-view="pagos"><span data-ic="money"></span>Pagos<span class="badge n" id="payBadge" hidden></span></button>
+      <button role="tab" data-view="datos"><span data-ic="bell"></span>Ajustes</button>
+    </nav>
+    <div class="right">
+      <span class="clock" id="clock"></span>
+      <button class="iconbtn" id="themeBtn" title="Cambiar tema" aria-label="Cambiar tema"></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="v-hoy"></section>
+  <section id="v-ots" hidden>
+    <div class="hero"><div><h2>Órdenes de trabajo</h2><p id="otSub"></p></div><div class="acts"><button class="btn emg" data-emg="now"><span data-ic="bolt"></span>Registrar emergencia</button></div></div>
+    <div class="toolbar">
+      <div class="search"><span data-ic="search"></span><input id="fText" type="search" placeholder="Buscar OT, descripción, sector, brigada…"></div>
+      <select id="fEstado" aria-label="Estado"></select>
+      <select id="fBrig" aria-label="Brigada"></select>
+      <select id="fSector" aria-label="Sector"></select>
+      <select id="fTipo" aria-label="Tipo"><option value="">Todos los tipos</option><option value="programada">Programadas</option><option value="emergencia">Emergencias</option></select>
+    </div>
+    <div class="list" id="otList"></div>
+  </section>
+  <section id="v-cal" hidden>
+    <div class="calhead">
+      <span class="title" id="calTitle"></span>
+      <button class="btn small" id="calPrev" aria-label="Mes anterior"></button>
+      <button class="btn small" id="calToday">Hoy</button>
+      <button class="btn small" id="calNext" aria-label="Mes siguiente"></button>
+      <span class="spacer"></span>
+      <select id="calBrig" aria-label="Filtrar brigada"></select>
+    </div>
+    <div class="calwrap"><div class="cal" id="cal"></div></div>
+    <div class="legend" id="calLegend"></div>
+    <div class="sec"><h3 id="dayTitle"></h3><span class="count" id="dayCount"></span><span class="spacer"></span><button class="btn small emg" data-emg="day"><span data-ic="bolt" class="sm"></span>Emergencia este día</button></div>
+    <div class="list" id="dayList"></div>
+  </section>
+  <section id="v-brig" hidden>
+    <div class="hero"><div><h2>Brigadas</h2><p>Carga de trabajo y contacto de tus contratistas.</p></div><button class="btn primary" id="addBrig"><span data-ic="plus"></span>Nueva brigada</button></div>
+    <div class="sec"><h3>Carga próximos 14 días</h3><span class="spacer"></span><span class="note">Rojo = dos o más OT a la vez</span></div>
+    <div class="loadwrap"><div class="load" id="load"></div></div>
+    <div class="sec"><h3>Equipos</h3><span class="count" id="brigCount"></span></div>
+    <div class="bgrid" id="brigList"></div>
+  </section>
+  <section id="v-pagos" hidden></section>
+  <section id="v-datos" hidden></section>
+</main>
+
+<button class="btn primary fab" id="fab" title="Nueva OT" aria-label="Nueva OT"><span data-ic="plus"></span><span>Nueva OT</span></button>
+
+<dialog id="dlgOT"><form method="dialog" id="fOT"></form></dialog>
+<dialog id="dlgBrig"><form method="dialog" id="fBrigForm"></form></dialog>
+<dialog id="dlgPago"><form method="dialog" id="fPago"></form></dialog>
+<dialog id="dlgImport"><form method="dialog" id="fImport"></form></dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ======================= Iconos ======================= */
+const IC = {
+  wrench: "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z",
+  home: "M3 10.5 12 3l9 7.5M5 9v11h5v-6h4v6h5V9",
+  list: "M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01",
+  cal: "M4 5h16v16H4zM4 10h16M8 3v4M16 3v4",
+  users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
+  bell: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
+  pin: "M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+  clock: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 7v5l3 2",
+  alert: "M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
+  play: "M7 4.5v15l12-7.5z",
+  pause: "M8 5v14M16 5v14",
+  check: "M20 6 9 17l-5-5",
+  checkc: "M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14l-3-3",
+  swap: "M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7",
+  phone: "M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z",
+  msg: "M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5z",
+  plus: "M12 5v14M5 12h14",
+  moon: "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z",
+  sun: "M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4",
+  auto: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 2v20",
+  arrow: "M5 12h14M13 6l6 6-6 6",
+  left: "M15 18l-6-6 6-6", right: "M9 18l6-6-6-6",
+  search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3",
+  x: "M18 6 6 18M6 6l12 12",
+  bolt: "M13 2 3 14h9l-1 8 10-12h-9z",
+  down: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
+  up: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
+  db: "M12 8c4.4 0 8-1.3 8-3s-3.6-3-8-3-8 1.3-8 3 3.6 3 8 3zM4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3",
+  trash: "M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15",
+  copy: "M9 9h11v11H9zM5 15H4V4h11v1",
+  edit: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z",
+  sheet: "M4 3h16v18H4zM4 9h16M4 15h16M10 3v18",
+  money: "M12 2v20M17 5.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+};
+const ic = (n, cls = "") => `<svg class="i ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
+function hydrateIcons(root = document) { root.querySelectorAll("[data-ic]").forEach(el => { el.outerHTML = ic(el.dataset.ic, el.className); }); }
+
+/* ======================= Datos ======================= */
+const KEY = "inspector-mant-v1";
+const ESTADOS = [
+  ["planificada", "Planificada"], ["ejecucion", "En ejecución"], ["detenida", "Detenida"],
+  ["terminada", "Terminada (por recepcionar)"], ["recepcionada", "Recepcionada (por pagar)"], ["pagada", "Pagada"]
+];
+const EST_LABEL = Object.fromEntries(ESTADOS.map(([k, v]) => [k, v.replace(/ \(.*/, "")]));
+const ACTIVA = e => e === "planificada" || e === "ejecucion" || e === "detenida";
+const CERRADA = e => e === "recepcionada" || e === "pagada";
+const isEmg = o => o.tipo === "emergencia";
+const COLORS = ["#2563c9", "#d0433a", "#1e9257", "#8a4fd0", "#d07a12", "#0f8a94", "#c03a86", "#5f7330"];
+const DEF_AJUSTES = { horasVence: 24, diasInicio: 2, diasRecepcion: 2, notif: false };
+
+let S = load();
+function blank() { return { brigadas: [], ots: [], ajustes: { ...DEF_AJUSTES }, avisados: {} }; }
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { const d = JSON.parse(raw); d.ajustes = { ...DEF_AJUSTES, ...(d.ajustes || {}) }; d.avisados = d.avisados || {}; return d; }
+  } catch (e) {}
+  return blank();
+}
+function persist() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); return true; }
+  catch (e) { toast("No se pudo guardar en este navegador. Exporta un respaldo."); return false; }
+}
+function save() { persist(); renderAll(); }
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const brigById = id => S.brigadas.find(b => b.id === id);
+const otById = id => S.ots.find(o => o.id === id);
+
+/* ======================= Utilidades ======================= */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const D = s => s ? new Date(s) : null;
+const pad = n => String(n).padStart(2, "0");
+const toLocalInput = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+const fmtDT = new Intl.DateTimeFormat("es-CL", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+const fmtD = new Intl.DateTimeFormat("es-CL", { weekday: "short", day: "numeric", month: "short" });
+const fmtLong = new Intl.DateTimeFormat("es-CL", { weekday: "long", day: "numeric", month: "long" });
+const fmtMonth = new Intl.DateTimeFormat("es-CL", { month: "long", year: "numeric" });
+const fmtHM = new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit", hour12: false });
+const fdt = s => s ? fmtDT.format(D(s)) : "—";
+const Dd = s => s ? new Date(s.length === 10 ? s + "T00:00" : s) : null;
+const fmtDay = new Intl.DateTimeFormat("es-CL", { day: "2-digit", month: "2-digit", year: "2-digit" });
+const fd = s => s ? fmtDay.format(Dd(s)) : "—";
+const fmtCLP = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
+const money = v => Number(v) ? fmtCLP.format(Number(v)) : "—";
+const sum = L => L.reduce((a, o) => a + (Number(o.monto) || 0), 0);
+function fRange(a, b) {
+  if (!a) return "Sin fecha";
+  const A = D(a), B = D(b);
+  if (B && dayKey(A) === dayKey(B)) return `${fmtD.format(A)} · ${fmtHM.format(A)}–${fmtHM.format(B)}`;
+  return `${fdt(a)} → ${fdt(b)}`;
+}
+function dur(ms) {
+  ms = Math.abs(ms); const m = Math.round(ms / 60000);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60); if (h < 48) return `${h} h${m % 60 && h < 6 ? " " + (m % 60) + " min" : ""}`;
+  const d = Math.floor(h / 24), rh = h % 24; return `${d} d${rh ? " " + rh + " h" : ""}`;
+}
+function toast(msg) { const t = document.getElementById("toast"); t.innerHTML = ic("checkc") + esc(msg); t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600); }
+const sectores = () => [...new Set(S.ots.map(o => (o.sector || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+function overlaps(o, a, b) { const s = D(o.inicioPlan), e = D(o.finPlan) || s; return s && s < b && e >= a; }
+function initials(name) {
+  name = String(name || "").trim(); if (!name) return "?";
+  const num = name.match(/\d+/);
+  const w = name.split(/\s+/).filter(x => /^[\p{L}]/u.test(x));
+  return ((w[0]?.[0] || "") + (num ? num[0] : (w[1]?.[0] || ""))).toUpperCase().slice(0, 3);
+}
+const bColor = id => brigById(id)?.color || "#7a8791";
+
+/* ======================= Alertas ======================= */
+const KIND_IC = { atrasada: "alert", vence: "clock", noinicia: "play", inicia: "arrow", detenida: "pause", recepcion: "check", choque: "swap", emergencia: "bolt" };
+function alertas(now = new Date()) {
+  const A = [], aj = S.ajustes, H = 3600e3;
+  for (const o of S.ots) {
+    const ini = D(o.inicioPlan), fin = D(o.finPlan), b = brigById(o.brigadaId);
+    const base = { ot: o, who: b ? b.nombre : "Sin brigada" };
+    if (isEmg(o) && ACTIVA(o.estado)) {
+      A.push({ ...base, sev: "bad", k: "emergencia", t: `Emergencia en curso${ini && ini < now ? " · " + dur(now - ini) : ""}`, sub: `Inició ${fdt(o.inicioPlan)}`, when: -2e15 });
+      continue;
+    }
+    if (isEmg(o) && o.estado !== "terminada") continue;
+    if (ACTIVA(o.estado) && fin && fin < now)
+      A.push({ ...base, sev: "bad", k: "atrasada", t: `Atrasada ${dur(now - fin)}`, sub: `Debía terminar ${fdt(o.finPlan)}`, when: -1e15 + fin.getTime() });
+    else if (ACTIVA(o.estado) && fin && fin - now <= aj.horasVence * H)
+      A.push({ ...base, sev: "warn", k: "vence", t: `Vence en ${dur(fin - now)}`, sub: `Término plan ${fdt(o.finPlan)}`, when: fin.getTime() });
+    if (o.estado === "planificada" && ini && ini < now)
+      A.push({ ...base, sev: "bad", k: "noinicia", t: `Sin iniciar · debió hace ${dur(now - ini)}`, sub: `Inicio plan ${fdt(o.inicioPlan)}`, when: -1e15 + ini.getTime() });
+    else if (o.estado === "planificada" && ini && ini - now <= aj.diasInicio * 24 * H)
+      A.push({ ...base, sev: "info", k: "inicia", t: `Inicia en ${dur(ini - now)}`, sub: `Inicio plan ${fdt(o.inicioPlan)}`, when: ini.getTime() });
+    if (o.estado === "detenida") {
+      const last = (o.bitacora || []).slice(-1)[0];
+      A.push({ ...base, sev: "warn", k: "detenida", t: "Trabajo detenido", sub: last ? last.txt : "Registra el motivo en la bitácora", when: 0 });
+    }
+    if (o.estado === "terminada") {
+      const f = D(o.finReal) || fin; const late = f && now - f > aj.diasRecepcion * 24 * H;
+      A.push({ ...base, sev: late ? "warn" : "info", k: "recepcion", t: late ? `Sin recepcionar hace ${dur(now - f)}` : "Pendiente de recepción", sub: "Revisar en terreno y cerrar OT", when: 1e15 });
+    }
+  }
+  for (const b of S.brigadas) {
+    const act = S.ots.filter(o => o.brigadaId === b.id && ACTIVA(o.estado) && o.inicioPlan && o.finPlan)
+      .sort((x, y) => D(x.inicioPlan) - D(y.inicioPlan));
+    for (let i = 0; i < act.length; i++) for (let j = i + 1; j < act.length; j++) {
+      if (D(act[j].inicioPlan) < D(act[i].finPlan) && D(act[i].finPlan) > now)
+        A.push({ ot: act[j], who: b.nombre, sev: "warn", k: "choque", key: "choque-" + act[i].id, t: `Choque con OT ${act[i].numero}`, sub: `${b.nombre} tiene dos trabajos a la vez`, when: D(act[j].inicioPlan).getTime() });
+    }
+  }
+  const rank = { bad: 0, warn: 1, info: 2 };
+  return A.sort((a, b) => rank[a.sev] - rank[b.sev] || a.when - b.when);
+}
+
+/* ======================= Componentes ======================= */
+function dueInfo(o, now = new Date()) {
+  const ini = D(o.inicioPlan), fin = D(o.finPlan);
+  if (o.estado === "pagada") return ["okc", "money", "Pagada " + fd(o.fechaPago)];
+  if (o.estado === "recepcionada") return ["info", "money", "Por pagar"];
+  if (o.estado === "terminada") return ["info", "check", "Por recepcionar"];
+  if (isEmg(o)) return ["bad", "bolt", ini && ini < now ? "En curso " + dur(now - ini) : "En curso"];
+  if (fin && fin < now) return ["bad", "alert", "Atrasada " + dur(now - fin)];
+  if (o.estado === "planificada" && ini && ini < now) return ["bad", "play", "Sin iniciar"];
+  if (o.estado === "planificada" && ini) return ["info", "arrow", "Inicia en " + dur(ini - now)];
+  if (fin) return [fin - now <= S.ajustes.horasVence * 3600e3 ? "warn" : "muted", "clock", "Quedan " + dur(fin - now)];
+  return ["muted", "clock", "Sin fecha"];
+}
+function quickBtn(o) {
+  const m = { planificada: ["ejecucion", "Iniciar", "play"], ejecucion: ["terminada", "Terminar", "check"], detenida: ["ejecucion", "Reanudar", "play"], terminada: ["recepcionada", "Recepcionar", "checkc"], recepcionada: ["pagada", "Marcar pagada", "money"] }[o.estado];
+  return m ? `<button class="btn small go" data-quick="${o.id}" data-to="${m[0]}">${ic(m[2], "sm")}${m[1]}</button>` : "";
+}
+function otCard(o) {
+  const b = brigById(o.brigadaId);
+  const av = Number(o.avance) || 0;
+  const [dc, di, dt] = dueInfo(o);
+  const showBar = o.estado === "ejecucion" || o.estado === "detenida" || av > 0;
+  return `<div class="ot" data-ot="${o.id}" tabindex="0" role="button" style="--b:${esc(bColor(o.brigadaId))}">
+    <div class="ot-top"><span class="num">OT ${esc(o.numero)}</span>
+      ${isEmg(o) ? `<span class="pill emg">${ic("bolt")}Emergencia</span>` : ""}
+      <span class="pill st-${o.estado}">${EST_LABEL[o.estado]}</span>
+      ${o.prioridad && !isEmg(o) ? `<span class="prio pr-${o.prioridad}">${o.prioridad}</span>` : ""}
+      ${Number(o.monto) && CERRADA(o.estado) ? `<span class="money" style="font-size:.8rem;color:var(--muted)">${money(o.monto)}</span>` : ""}
+      <span class="due ${dc}">${ic(di, "sm")}${dt}</span></div>
+    <div class="desc">${esc(o.descripcion) || '<span class="note">Sin descripción</span>'}</div>
+    <div class="meta">
+      <span>${ic("pin", "sm")}${esc(o.sector) || "—"}</span>
+      <span><span class="av">${esc(initials(b?.nombre))}</span>${esc(b?.nombre) || "Sin brigada"}</span>
+      <span>${ic("cal", "sm")}${isEmg(o) && (ACTIVA(o.estado) || o.finPlan === o.inicioPlan) ? (ACTIVA(o.estado) ? "Desde " : "") + fdt(o.inicioPlan) : fRange(o.inicioPlan, o.finPlan)}</span>
+    </div>
+    ${showBar || quickBtn(o) ? `<div class="ot-foot">${showBar ? `<div class="bar" title="Avance ${av}%"><i style="width:${av}%"></i></div><span class="pct">${av}%</span>` : ""}${quickBtn(o)}</div>` : ""}
+  </div>`;
+}
+function alertRow(a) {
+  return `<div class="alert ${a.sev}" data-ot="${a.ot.id}" tabindex="0" role="button">
+    <span class="ai">${ic(KIND_IC[a.k])}</span>
+    <div style="min-width:0"><div class="at"><span class="n">${esc(a.ot.numero)}</span>${esc(a.t)}</div>
+      <small>${esc(a.ot.descripcion || "Sin descripción")}</small>
+      <small>${esc(a.ot.sector || "—")} · ${esc(a.who)} · ${esc(a.sub)}</small></div>
+    <span>${quickBtn(a.ot)}</span></div>`;
+}
+const emptyBox = (icon, msg) => `<div class="empty">${ic(icon)}<span>${msg}</span></div>`;
+
+/* ======================= Vista Hoy ======================= */
+function renderHoy() {
+  const now = new Date(), A = alertas(now);
+  const act = S.ots.filter(o => ACTIVA(o.estado));
+  const t0 = startOfDay(now), t1 = addDays(t0, 1);
+  const hoy = act.filter(o => !isEmg(o) && overlaps(o, t0, t1));
+  const emgHoy = S.ots.filter(o => isEmg(o) && (overlaps(o, t0, t1) || ACTIVA(o.estado))).sort((a, b) => D(b.inicioPlan) - D(a.inicioPlan));
+  const porPagar = S.ots.filter(o => o.estado === "recepcionada");
+  const prox = act.filter(o => D(o.inicioPlan) >= t1 && D(o.inicioPlan) < addDays(t0, 8)).sort((a, b) => D(a.inicioPlan) - D(b.inicioPlan));
+  const n = k => A.filter(a => a.k === k).length;
+  const el = document.getElementById("v-hoy");
+  if (!S.ots.length && !S.brigadas.length) {
+    el.innerHTML = `<div class="welcome">
+      <div><h2>Bienvenido, inspector</h2><p class="note" style="margin:6px 0 0">Controla las OT de tus brigadas contratistas: sector, fechas, estado y avance, con alertas automáticas.</p></div>
+      <div class="steps">
+        <div class="step info"><span class="ai">${ic("users")}</span><div><b>Crea tus brigadas</b><div class="note">Empresa, supervisor y teléfono para llamar o enviar WhatsApp.</div></div></div>
+        <div class="step okc"><span class="ai">${ic("list")}</span><div><b>Ingresa las OT</b><div class="note">Una por una con el botón «Nueva OT», o pegándolas desde Excel.</div></div></div>
+        <div class="step warn"><span class="ai">${ic("bell")}</span><div><b>Recibe avisos</b><div class="note">Atrasos, vencimientos, inicios y choques de horario. Exporta todo a tu calendario.</div></div></div>
+      </div>
+      <div class="row"><button class="btn primary" id="demoBtn">${ic("bolt", "sm")}Probar con datos de ejemplo</button><button class="btn" data-go="brig">${ic("users", "sm")}Crear brigadas</button></div></div>`;
+    return;
+  }
+  const crit = n("atrasada") + n("noinicia");
+  const hr = now.getHours(), saludo = hr < 12 ? "Buenos días" : hr < 20 ? "Buenas tardes" : "Buenas noches";
+  const resumen = crit || n("vence")
+    ? `Tienes ${crit ? `<b>${crit} OT ${crit === 1 ? "crítica" : "críticas"}</b>` : ""}${crit && n("vence") ? " y " : ""}${n("vence") ? `<b>${n("vence")} por vencer</b>` : ""}. ${hoy.length} trabajos en terreno hoy.`
+    : `Todo al día. ${hoy.length} trabajos en terreno hoy.`;
+  const kpi = (cls, f, val, label, icon) => `<button class="kpi ${cls}${val ? "" : " zero"}" data-filter="${f}"><div><b>${val}</b><span>${label}</span></div><span class="ki">${ic(icon)}</span></button>`;
+  const groups = [["bad", "Crítico"], ["warn", "Atención"], ["info", "Próximo"]].map(([s, l]) => {
+    const g = A.filter(a => a.sev === s);
+    return g.length ? `<div class="agroup ${s}"><div class="lbl">${l} · ${g.length}</div><div class="list">${g.map(alertRow).join("")}</div></div>` : "";
+  }).join("");
+  // Agenda próximos días
+  const byDay = {};
+  for (const o of prox) (byDay[dayKey(D(o.inicioPlan))] ||= []).push(o);
+  const agenda = Object.entries(byDay).map(([k, L]) => {
+    const d = D(k + "T00:00");
+    return `<div class="dayh">${cap(fmtD.format(d))}<small>${L.length} OT</small></div>` + L.map(o => {
+      const b = brigById(o.brigadaId);
+      return `<div class="it" data-ot="${o.id}" tabindex="0" role="button" style="--b:${esc(bColor(o.brigadaId))}"><span class="t">${fmtHM.format(D(o.inicioPlan))}</span><span class="ln"></span>
+        <div style="min-width:0"><b>${esc(o.descripcion) || "OT " + esc(o.numero)}</b><small>OT ${esc(o.numero)} · ${esc(o.sector || "—")} · ${esc(b?.nombre || "Sin brigada")}</small></div>
+        ${o.prioridad === "alta" ? `<span class="prio pr-alta">alta</span>` : ""}</div>`;
+    }).join("");
+  }).join("");
+  el.innerHTML = `
+    <div class="hero"><div><h2>${saludo}</h2><p>${cap(fmtLong.format(now))} · ${resumen}</p></div>
+      <div class="acts"><button class="btn emg" data-emg="now">${ic("bolt", "sm")}Registrar emergencia</button></div></div>
+    <div class="kpis">
+      ${kpi("", "activas", act.length, "OT activas", "list")}
+      ${kpi("ok", "ejecucion", act.filter(o => o.estado === "ejecucion").length, "En ejecución", "bolt")}
+      ${kpi("bad", "atrasadas", crit, "Atrasadas / sin iniciar", "alert")}
+      ${kpi("warn", "vence", n("vence"), `Vencen en ≤ ${S.ajustes.horasVence} h`, "clock")}
+      ${kpi("", "terminada", n("recepcion"), "Por recepcionar", "checkc")}
+      ${kpi("", "porpagar", porPagar.length, porPagar.length && sum(porPagar) ? `Por pagar · ${money(sum(porPagar))}` : "Por pagar", "money")}
+    </div>
+    <div class="cols">
+      <div>
+        <div class="sec"><h3>Alertas</h3><span class="count">${A.length}</span></div>
+        ${A.length ? groups : `<div class="allgood">${ic("checkc")}Sin alertas. Todo en orden.</div>`}
+      </div>
+      <div>
+        ${emgHoy.length ? `<div class="sec"><h3 style="color:var(--bad)">Emergencias</h3><span class="count">${emgHoy.length}</span></div><div class="list">${emgHoy.map(otCard).join("")}</div>` : ""}
+        <div class="sec"><h3>En terreno hoy</h3><span class="count">${hoy.length}</span></div>
+        <div class="list">${hoy.length ? hoy.sort((a, b) => (brigById(a.brigadaId)?.nombre || "").localeCompare(brigById(b.brigadaId)?.nombre || "")).map(otCard).join("") : emptyBox("cal", "No hay OT planificadas para hoy.")}</div>
+        <div class="sec"><h3>Próximos 7 días</h3><span class="count">${prox.length}</span></div>
+        ${prox.length ? `<div class="agenda">${agenda}</div>` : emptyBox("cal", "Nada programado.")}
+      </div>
+    </div>`;
+}
+
+/* ======================= Vista OTs ======================= */
+let otPreset = null;
+function fillFilters() {
+  const keep = id => document.getElementById(id).value;
+  const fe = keep("fEstado"), fb = keep("fBrig"), fs = keep("fSector");
+  document.getElementById("fEstado").innerHTML = `<option value="">Abiertas + por recepcionar</option><option value="todas">Todos los estados</option>` + ESTADOS.map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+  document.getElementById("fBrig").innerHTML = `<option value="">Todas las brigadas</option>` + S.brigadas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join("") + `<option value="_none">Sin brigada</option>`;
+  document.getElementById("fSector").innerHTML = `<option value="">Todos los sectores</option>` + sectores().map(s => `<option>${esc(s)}</option>`).join("");
+  document.getElementById("fEstado").value = fe; document.getElementById("fBrig").value = fb; document.getElementById("fSector").value = fs;
+  document.getElementById("calBrig").innerHTML = `<option value="">Todas las brigadas</option>` + S.brigadas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join("");
+  document.getElementById("calBrig").value = calBrig;
+}
+function renderOTs() {
+  const q = document.getElementById("fText").value.trim().toLowerCase();
+  const fe = document.getElementById("fEstado").value, fb = document.getElementById("fBrig").value, fs = document.getElementById("fSector").value;
+  const ft = document.getElementById("fTipo").value;
+  const now = new Date();
+  const L = S.ots.filter(o => {
+    if (fe === "" && CERRADA(o.estado)) return false;
+    if (ft && (o.tipo || "programada") !== ft) return false;
+    if (fe && fe !== "todas" && o.estado !== fe) return false;
+    if (fb === "_none" ? o.brigadaId : fb && o.brigadaId !== fb) return false;
+    if (fs && (o.sector || "").trim() !== fs) return false;
+    if (q && !`${o.numero} ${o.descripcion} ${o.sector} ${brigById(o.brigadaId)?.nombre || ""} ${o.notas || ""}`.toLowerCase().includes(q)) return false;
+    if (otPreset === "atrasadas") return ACTIVA(o.estado) && ((D(o.finPlan) && D(o.finPlan) < now) || (o.estado === "planificada" && D(o.inicioPlan) < now));
+    if (otPreset === "vence") return ACTIVA(o.estado) && D(o.finPlan) >= now && D(o.finPlan) - now <= S.ajustes.horasVence * 3600e3;
+    if (otPreset === "activas") return ACTIVA(o.estado);
+    return true;
+  }).sort((a, b) => (D(a.finPlan) || 0) - (D(b.finPlan) || 0));
+  const presetName = { atrasadas: "Atrasadas / sin iniciar", vence: `Vencen en ≤ ${S.ajustes.horasVence} h`, activas: "Solo activas" }[otPreset];
+  document.getElementById("otSub").textContent = `${L.length} de ${S.ots.length} OT · ordenadas por fecha de término`;
+  document.getElementById("otList").innerHTML =
+    (presetName ? `<div class="chipbar"><span class="fchip">${presetName}<button id="clearPreset" aria-label="Quitar filtro">${ic("x", "sm")}</button></span></div>` : "") +
+    (L.length ? L.map(otCard).join("") : emptyBox("search", "No hay OT con estos filtros."));
+}
+
+/* ======================= Calendario ======================= */
+let calMonth = startOfDay(new Date()); calMonth.setDate(1);
+let calSel = startOfDay(new Date()); let calBrig = "";
+function calOTs() { return S.ots.filter(o => !calBrig || o.brigadaId === calBrig); }
+function renderCal() {
+  const now = new Date(), y = calMonth.getFullYear(), m = calMonth.getMonth();
+  document.getElementById("calTitle").textContent = cap(fmtMonth.format(calMonth));
+  const first = new Date(y, m, 1), off = (first.getDay() + 6) % 7, start = addDays(first, -off);
+  const L = calOTs();
+  let h = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map(d => `<div class="dow">${d}</div>`).join("");
+  for (let i = 0; i < 42; i++) {
+    const d = addDays(start, i), e = addDays(d, 1);
+    if (i === 35 && d.getMonth() !== m) break;
+    const its = L.filter(o => overlaps(o, d, e)).sort((a, b) => D(a.inicioPlan) - D(b.inicioPlan));
+    const cls = ["day", d.getMonth() !== m && "out", (d.getDay() === 0 || d.getDay() === 6) && "we", dayKey(d) === dayKey(now) && "today", dayKey(d) === dayKey(calSel) && "sel"].filter(Boolean).join(" ");
+    h += `<button class="${cls}" data-day="${dayKey(d)}" aria-label="${fmtLong.format(d)}, ${its.length} OT"><span class="dn">${d.getDate()}</span>` +
+      its.slice(0, 3).map(o => { const late = ACTIVA(o.estado) && D(o.finPlan) < now;
+        const cls = ["chip", CERRADA(o.estado) && "closed", isEmg(o) && "emgc"].filter(Boolean).join(" ");
+        return `<span class="${cls}" style="--b:${esc(bColor(o.brigadaId))}" title="${isEmg(o) ? "EMERGENCIA · " : ""}OT ${esc(o.numero)} · ${esc(o.descripcion)} · ${EST_LABEL[o.estado]}">${late ? '<i class="x"></i>' : ""}${isEmg(o) ? ic("bolt", "bz") : ""}<span>${esc(o.numero)} · ${esc(o.sector || "")}</span></span>`; }).join("") +
+      (its.length > 3 ? `<span class="more">+${its.length - 3} más</span>` : "") + `</button>`;
+  }
+  document.getElementById("cal").innerHTML = h;
+  document.getElementById("calLegend").innerHTML = S.brigadas.map(b => `<span><i style="background:${esc(b.color)}"></i>${esc(b.nombre)}</span>`).join("") + `<span><i style="background:var(--bad);border-radius:50%;width:7px;height:7px"></i>Atrasada</span><span style="color:var(--bad)">${ic("bolt", "sm")}<span style="color:var(--muted)">Emergencia</span></span><span><i style="background:var(--muted);opacity:.5"></i>Recepcionada / pagada</span>`;
+  const its = L.filter(o => overlaps(o, calSel, addDays(calSel, 1))).sort((a, b) => D(a.inicioPlan) - D(b.inicioPlan));
+  document.getElementById("dayTitle").textContent = cap(fmtLong.format(calSel));
+  document.getElementById("dayCount").textContent = `${its.length} OT`;
+  document.getElementById("dayList").innerHTML = its.length ? its.map(otCard).join("") : emptyBox("cal", "Sin OT este día. Usa «Nueva OT» para programar una.");
+}
+
+/* ======================= Brigadas ======================= */
+function renderBrig() {
+  const t0 = startOfDay(new Date());
+  let h = `<div></div>` + Array.from({ length: 14 }, (_, i) => { const d = addDays(t0, i), we = d.getDay() === 0 || d.getDay() === 6;
+    return `<div class="h${we ? " we" : ""}${i === 0 ? " tod" : ""}">${"DLMMJVS"[d.getDay()]}<b>${d.getDate()}</b></div>`; }).join("");
+  for (const b of S.brigadas) {
+    h += `<div class="name" title="${esc(b.nombre)}" style="--b:${esc(b.color)}"><span class="av">${esc(initials(b.nombre))}</span>${esc(b.nombre)}</div>`;
+    for (let i = 0; i < 14; i++) {
+      const d = addDays(t0, i), its = S.ots.filter(o => o.brigadaId === b.id && ACTIVA(o.estado) && overlaps(o, d, addDays(d, 1)));
+      const n = its.length;
+      h += `<div class="c${n ? " n1" : ""}${n > 1 ? " n2" : ""}" style="--b:${esc(b.color)}" title="${esc(fmtD.format(d))}: ${esc(its.map(o => "OT " + o.numero).join(", ") || "libre")}">${n || ""}</div>`;
+    }
+  }
+  document.getElementById("load").innerHTML = S.brigadas.length ? h : `<div style="grid-column:1/-1">${emptyBox("users", "Crea brigadas para ver su carga.")}</div>`;
+  document.getElementById("brigCount").textContent = S.brigadas.length;
+  document.getElementById("brigList").innerHTML = S.brigadas.length ? S.brigadas.map(b => {
+    const mine = S.ots.filter(o => o.brigadaId === b.id), act = mine.filter(o => ACTIVA(o.estado));
+    const late = act.filter(o => D(o.finPlan) < new Date()).length;
+    const tel = (b.telefono || "").replace(/[^\d+]/g, "");
+    return `<div class="bcard" style="--b:${esc(b.color)}">
+      <div class="bh"><span class="av lg">${esc(initials(b.nombre))}</span>
+        <div style="flex:1;min-width:0"><h4>${esc(b.nombre)}</h4><div class="sub">${esc(b.empresa) || "Sin empresa"}${b.integrantes ? ` · ${esc(b.integrantes)} personas` : ""}</div></div>
+        <button class="btn small ghost" data-editbrig="${b.id}" aria-label="Editar">${ic("edit", "sm")}</button></div>
+      <div class="stats">
+        <div class="stat"><b>${act.length}</b><span>Activas</span></div>
+        <div class="stat ${late ? "bad" : ""}"><b>${late}</b><span>Atrasadas</span></div>
+        <div class="stat"><b>${mine.filter(o => o.estado === "terminada").length}</b><span>Por recep.</span></div>
+        <div class="stat"><b>${mine.filter(o => o.estado === "recepcionada").length}</b><span>Por pagar</span></div>
+      </div>
+      <div class="row"><span class="note" style="display:inline-flex;gap:6px;align-items:center;flex:1;min-width:0">${ic("users", "sm")}${esc(b.supervisor) || "Sin supervisor"}</span>
+        ${tel ? `<a class="btn small" href="tel:${esc(tel)}">${ic("phone", "sm")}Llamar</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/${esc(tel.replace("+", ""))}">${ic("msg", "sm")}WhatsApp</a>` : ""}</div>
+      ${b.notas ? `<p class="note" style="margin:0">${esc(b.notas)}</p>` : ""}</div>`;
+  }).join("") : emptyBox("users", "Aún no hay brigadas.");
+}
+
+/* ======================= Pagos ======================= */
+const paySel = new Set(); let payBrig = "", payMes = "";
+const fmtMes = new Intl.DateTimeFormat("es-CL", { month: "long", year: "numeric" });
+const mesLabel = k => cap(fmtMes.format(new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, 1)));
+function renderPagos() {
+  const byB = o => !payBrig || o.brigadaId === payBrig;
+  const porPagar = S.ots.filter(o => o.estado === "recepcionada" && byB(o)).sort((a, b) => (a.fechaRecepcion || "").localeCompare(b.fechaRecepcion || ""));
+  for (const id of [...paySel]) if (!porPagar.some(o => o.id === id)) paySel.delete(id);
+  const pagAll = S.ots.filter(o => o.estado === "pagada" && byB(o));
+  const meses = [...new Set(pagAll.map(o => (o.fechaPago || "").slice(0, 7)).filter(Boolean))].sort().reverse();
+  if (payMes && !meses.includes(payMes)) payMes = "";
+  const pagadas = pagAll.filter(o => !payMes || (o.fechaPago || "").startsWith(payMes)).sort((a, b) => (b.fechaPago || "").localeCompare(a.fechaPago || ""));
+  const porRecep = S.ots.filter(o => o.estado === "terminada" && byB(o)).length;
+  const sel = porPagar.filter(o => paySel.has(o.id));
+  const brigName = o => esc(brigById(o.brigadaId)?.nombre || "Sin brigada");
+  const rowPend = o => `<div class="prow" data-ot="${o.id}">
+      <input type="checkbox" class="chk psel" data-id="${o.id}" ${paySel.has(o.id) ? "checked" : ""} aria-label="Seleccionar OT ${esc(o.numero)}">
+      <div style="min-width:0"><b>${isEmg(o) ? `<span style="color:var(--bad)">${ic("bolt", "sm")}</span> ` : ""}OT ${esc(o.numero)} · ${esc(o.descripcion || "Sin descripción")}</b>
+        <small>${brigName(o)} · ${esc(o.sector || "—")} · Recepcionada ${fd(o.fechaRecepcion)}</small></div>
+      <span class="money">${money(o.monto)}</span>
+      <button class="btn small go" data-quick="${o.id}" data-to="pagada">${ic("money", "sm")}Pagar</button></div>`;
+  const groups = {};
+  for (const o of pagadas) (groups[(o.fechaPago || "").slice(0, 7) || "sin"] ||= []).push(o);
+  const paidHtml = Object.entries(groups).map(([k, L]) => `<div class="mhead">${k === "sin" ? "Sin fecha" : mesLabel(k)}<small>${L.length} OT</small><span class="money">${money(sum(L))}</span></div>` +
+    L.map(o => `<div class="prow paid" data-ot="${o.id}"><span class="fp">${fd(o.fechaPago)}</span>
+      <div style="min-width:0"><b>${isEmg(o) ? `<span style="color:var(--bad)">${ic("bolt", "sm")}</span> ` : ""}OT ${esc(o.numero)} · ${esc(o.descripcion || "Sin descripción")}</b><small>${brigName(o)}${brigById(o.brigadaId)?.empresa ? " · " + esc(brigById(o.brigadaId).empresa) : ""}</small></div>
+      <span class="money">${money(o.monto)}</span><span class="ref" title="${esc(o.refPago || "")}">${esc(o.refPago || "")}</span></div>`).join("")).join("");
+  // Resumen por empresa
+  const emp = {};
+  for (const o of S.ots.filter(o => (o.estado === "recepcionada" || (o.estado === "pagada" && (!payMes || (o.fechaPago || "").startsWith(payMes)))) && byB(o))) {
+    const b = brigById(o.brigadaId), k = b?.empresa || b?.nombre || "Sin brigada";
+    const e = emp[k] ||= { pend: [], pag: [] };
+    (o.estado === "pagada" ? e.pag : e.pend).push(o);
+  }
+  document.getElementById("v-pagos").innerHTML = `
+    <div class="hero"><div><h2>Pagos</h2><p><b>${porPagar.length}</b> OT recepcionadas por pagar${sum(porPagar) ? ` (${money(sum(porPagar))})` : ""} · <b>${pagadas.length}</b> pagadas${payMes ? " en " + mesLabel(payMes).toLowerCase() : ""}${sum(pagadas) ? ` (${money(sum(pagadas))})` : ""}${porRecep ? ` · ${porRecep} terminadas aún sin recepcionar` : ""}</p></div>
+      <div class="acts"><button class="btn" id="payCsv">${ic("down", "sm")}Exportar pagadas</button></div></div>
+    <div class="toolbar" style="grid-template-columns:repeat(2,minmax(0,220px))">
+      <select id="pBrig" aria-label="Brigada"><option value="">Todas las brigadas</option>${S.brigadas.map(b => `<option value="${b.id}" ${b.id === payBrig ? "selected" : ""}>${esc(b.nombre)}</option>`).join("")}</select>
+      <select id="pMes" aria-label="Mes de pago"><option value="">Todos los meses</option>${meses.map(m => `<option value="${m}" ${m === payMes ? "selected" : ""}>${mesLabel(m)}</option>`).join("")}</select>
+    </div>
+    <div class="sec"><h3>Por pagar</h3><span class="count">${porPagar.length}</span></div>
+    ${sel.length ? `<div class="bulkbar"><b>${sel.length} seleccionada${sel.length > 1 ? "s" : ""}</b>${sum(sel) ? `<span class="money">${money(sum(sel))}</span>` : ""}<span class="spacer"></span>
+      <button class="btn small ghost" id="payClear" style="color:var(--bg);border-color:transparent">Quitar selección</button>
+      <button class="btn small primary" id="payBulk">${ic("money", "sm")}Marcar como pagadas</button></div>` : ""}
+    ${porPagar.length ? `<div class="paybox"><div class="prow head"><input type="checkbox" class="chk" id="pselAll" ${sel.length === porPagar.length ? "checked" : ""} aria-label="Seleccionar todas"><span>OT recepcionada</span><span>Monto</span><span></span></div>${porPagar.map(rowPend).join("")}</div>`
+      : emptyBox("checkc", "No hay OT recepcionadas pendientes de pago.")}
+    <div class="sec"><h3>Pagadas</h3><span class="count">${pagadas.length}</span></div>
+    ${pagadas.length ? `<div class="paybox">${paidHtml}</div>` : emptyBox("money", "Aún no hay OT pagadas.")}
+    ${Object.keys(emp).length ? `<div class="sec"><h3>Resumen por empresa</h3></div>
+    <div class="paybox" style="overflow-x:auto"><table class="sumtab"><thead><tr><th>Empresa</th><th class="r">Por pagar</th><th class="r">Monto pendiente</th><th class="r">Pagadas</th><th class="r">Monto pagado</th></tr></thead><tbody>
+      ${Object.entries(emp).sort((a, b) => a[0].localeCompare(b[0], "es")).map(([k, e]) => `<tr><td><b>${esc(k)}</b></td><td class="r">${e.pend.length}</td><td class="r money">${money(sum(e.pend))}</td><td class="r">${e.pag.length}</td><td class="r money">${money(sum(e.pag))}</td></tr>`).join("")}
+    </tbody></table></div>` : ""}`;
+}
+function openPago(ids) {
+  const list = ids.map(otById).filter(Boolean);
+  if (!list.length) return;
+  const f = document.getElementById("fPago");
+  f.dataset.ids = list.map(o => o.id).join(",");
+  const ref = list.length === 1 ? list[0].refPago || "" : "";
+  f.innerHTML = `<div class="dh"><h3>Registrar pago<small>${list.length === 1 ? "OT " + esc(list[0].numero) + " · " + esc(list[0].descripcion || "") : list.length + " OT seleccionadas"}</small></h3>${closeBtn}</div>
+    <div class="db">
+      <div class="grid2">
+        <label>Fecha de pago *<input type="date" name="fechaPago" required value="${dayKey(new Date())}"></label>
+        <label>N° estado de pago / factura / HES<input name="refPago" value="${esc(ref)}" placeholder="Ej: EP-2026-11"></label>
+      </div>
+      <div class="fs"><div class="lt">Montos (opcional)</div>
+        <div class="paylist">${list.map(o => `<div class="payitem"><div style="min-width:0"><b>OT ${esc(o.numero)}</b><small>${esc(o.descripcion || "")} · ${esc(brigById(o.brigadaId)?.nombre || "Sin brigada")}</small></div>
+          <input type="number" min="0" step="1" inputmode="numeric" class="pmonto" data-id="${o.id}" value="${esc(o.monto || "")}" placeholder="$ CLP"></div>`).join("")}</div>
+        <div class="total"><span>Total</span><span class="money" id="payTotal">${money(sum(list))}</span></div></div>
+    </div>
+    <div class="df"><span class="spacer"></span><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="save">${ic("check", "sm")}Marcar ${list.length > 1 ? "como pagadas" : "como pagada"}</button></div>`;
+  f.querySelectorAll(".pmonto").forEach(inp => inp.addEventListener("input", () => {
+    document.getElementById("payTotal").textContent = money([...f.querySelectorAll(".pmonto")].reduce((a, x) => a + (Number(x.value) || 0), 0));
+  }));
+  document.getElementById("dlgPago").showModal();
+}
+document.getElementById("dlgPago").addEventListener("close", e => {
+  if (e.target.returnValue !== "save") return;
+  const f = document.getElementById("fPago"), fecha = f.fechaPago.value || dayKey(new Date()), ref = f.refPago.value.trim();
+  const now = toLocalInput(new Date()); let n = 0;
+  for (const id of f.dataset.ids.split(",")) {
+    const o = otById(id); if (!o) continue;
+    const m = f.querySelector(`.pmonto[data-id="${id}"]`)?.value;
+    o.monto = m ? Math.max(0, Math.round(Number(m))) : "";
+    if (!o.fechaRecepcion) o.fechaRecepcion = now;
+    o.bitacora = [...(o.bitacora || []), { t: now, txt: `Estado: ${EST_LABEL[o.estado]} → Pagada${ref ? " · " + ref : ""}${o.monto ? " · " + money(o.monto) : ""}` }];
+    o.estado = "pagada"; o.fechaPago = fecha; o.refPago = ref; paySel.delete(id); n++;
+  }
+  save(); toast(n > 1 ? `${n} OT marcadas como pagadas` : "OT marcada como pagada");
+});
+function exportPagos() {
+  const L = S.ots.filter(o => o.estado === "pagada" && (!payBrig || o.brigadaId === payBrig) && (!payMes || (o.fechaPago || "").startsWith(payMes)))
+    .sort((a, b) => (a.fechaPago || "").localeCompare(b.fechaPago || ""));
+  if (!L.length) return toast("No hay OT pagadas para exportar");
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const rows = L.map(o => { const b = brigById(o.brigadaId);
+    return [o.fechaPago, o.numero, isEmg(o) ? "Emergencia" : "Programada", o.descripcion, o.sector, b?.nombre, b?.empresa, (o.fechaRecepcion || "").replace("T", " "), o.refPago, o.monto].map(q).join(";"); });
+  rows.push(["", "", "", "", "", "", "", "", "TOTAL", sum(L)].map(q).join(";"));
+  download(`OT-pagadas-${payMes || dayKey(new Date())}.csv`, "﻿" + [["Fecha pago", "OT", "Tipo", "Descripcion", "Sector", "Brigada", "Empresa", "Fecha recepcion", "Ref. pago", "Monto"].map(q).join(";"), ...rows].join("\r\n"), "text/csv;charset=utf-8");
+}
+
+/* ======================= Ajustes ======================= */
+function renderDatos() {
+  const a = S.ajustes, perm = "Notification" in window ? Notification.permission : "no";
+  const on = a.notif && perm === "granted";
+  document.getElementById("v-datos").innerHTML = `
+  <div class="hero"><div><h2>Ajustes</h2><p>Avisos, calendario y tus datos.</p></div></div>
+  <div class="panels">
+    <div class="panel warn">
+      <div class="ph"><span class="ai">${ic("bell")}</span><h4>Avisos</h4></div>
+      <div class="grid2">
+        <label>Horas antes del término<input type="number" min="1" id="ajH" value="${a.horasVence}"></label>
+        <label>Días antes del inicio<input type="number" min="0" id="ajD" value="${a.diasInicio}"></label>
+        <label>Días para recepcionar<input type="number" min="0" id="ajR" value="${a.diasRecepcion}"></label>
+      </div>
+      <div class="row">
+        <button class="btn ${on ? "" : "primary"}" id="notifBtn">${ic("bell", "sm")}${perm === "no" ? "No soportado en este navegador" : on ? "Avisos activos · desactivar" : "Activar avisos del navegador"}</button>
+        <button class="btn" id="testNotif">Probar</button>
+      </div>
+      <p class="note">Los avisos llegan mientras la página está abierta (puede quedar en una pestaña). Para el celular con la app cerrada, exporta el calendario.</p>
+    </div>
+    <div class="panel info">
+      <div class="ph"><span class="ai">${ic("cal")}</span><h4>Calendario</h4></div>
+      <p class="note">Exporta las OT activas a Google Calendar, Outlook o el calendario del celular. Incluye alarmas 1 día antes del inicio y ${a.horasVence} h antes del término.</p>
+      <div class="row"><button class="btn primary" id="icsBtn">${ic("down", "sm")}Exportar OT activas (.ics)</button></div>
+    </div>
+    <div class="panel okc">
+      <div class="ph"><span class="ai">${ic("sheet")}</span><h4>Excel</h4></div>
+      <p class="note">Pega filas desde Excel o importa un CSV. Si la OT ya existe, se actualiza.</p>
+      <div class="row"><button class="btn" id="impBtn">${ic("up", "sm")}Importar OT</button><button class="btn" id="csvBtn">${ic("down", "sm")}Exportar a Excel</button></div>
+    </div>
+    <div class="panel info">
+      <div class="ph"><span class="ai">${ic("db")}</span><h4>Respaldo</h4></div>
+      <p class="note">Los datos se guardan solo en este navegador. Descarga un respaldo de vez en cuando y restáuralo para pasar tus datos a otro equipo.</p>
+      <div class="row">
+        <button class="btn" id="bakBtn">${ic("down", "sm")}Descargar</button>
+        <label class="btn" style="display:inline-flex;color:var(--ink);font-size:.9rem">${ic("up", "sm")}Restaurar<input type="file" id="restFile" accept=".json,application/json" hidden></label>
+        <span class="spacer"></span>
+        <button class="btn danger" id="wipeBtn">${ic("trash", "sm")}Borrar todo</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ======================= Formularios ======================= */
+const closeBtn = `<button class="closex" value="cancel" formnovalidate aria-label="Cerrar">${ic("x")}</button>`;
+function openOT(id, preset = {}) {
+  const o = id ? otById(id) : { id: "", numero: "", descripcion: "", sector: "", brigadaId: S.brigadas[0]?.id || "", prioridad: "media", estado: "planificada", tipo: "programada", avance: 0, notas: "", bitacora: [], ...preset };
+  const emg = isEmg(o);
+  const f = document.getElementById("fOT");
+  const tel = (brigById(o.brigadaId)?.telefono || "").replace(/[^\d]/g, "");
+  f.innerHTML = `
+    <div class="dh"><h3>${id ? "OT " + esc(o.numero) : emg ? "Registrar emergencia" : "Nueva OT"}${id ? `<small>${esc(o.descripcion || "")}</small>` : emg ? `<small>Trabajo no programado</small>` : ""}</h3>${emg ? `<span class="pill emg">${ic("bolt")}Emergencia</span>` : ""}${id ? `<span class="pill st-${o.estado}">${EST_LABEL[o.estado]}</span>` : ""}${closeBtn}</div>
+    <div class="db">
+      <div class="fs"><div class="lt">Trabajo</div>
+        <div class="grid2">
+          <label>Tipo de trabajo<select name="tipo"><option value="programada" ${!emg ? "selected" : ""}>Programada</option><option value="emergencia" ${emg ? "selected" : ""}>Emergencia</option></select></label>
+          <label><span id="numLbl">${emg ? "N° OT (opcional)" : "N° OT *"}</span><input name="numero" ${emg ? "" : "required"} value="${esc(o.numero)}" autocomplete="off" placeholder="${emg ? "Se puede asignar después" : ""}"></label>
+          <label>Sector / ubicación<input name="sector" list="dlSect" value="${esc(o.sector)}"><datalist id="dlSect">${sectores().map(s => `<option value="${esc(s)}">`).join("")}</datalist></label>
+        </div>
+        <label>Descripción<input name="descripcion" value="${esc(o.descripcion)}" placeholder="Ej: Cambio de rodamientos motor bomba P-301"></label>
+        <div class="grid2">
+          <label>Brigada<select name="brigadaId"><option value="">— Sin asignar —</option>${S.brigadas.map(b => `<option value="${b.id}" ${b.id === o.brigadaId ? "selected" : ""}>${esc(b.nombre)}${b.empresa ? " · " + esc(b.empresa) : ""}</option>`).join("")}</select></label>
+          <label>Prioridad<select name="prioridad">${["alta", "media", "baja"].map(p => `<option value="${p}" ${p === o.prioridad ? "selected" : ""}>${cap(p)}</option>`).join("")}</select></label>
+        </div></div>
+      <div class="fs"><div class="lt" id="planLt">${emg ? "Horario de la emergencia" : "Planificación"}</div>
+        <div class="grid2">
+          <label><span id="iniLbl">${emg ? "Inicio *" : "Inicio planificado *"}</span><input type="datetime-local" name="inicioPlan" required value="${esc(o.inicioPlan || "")}"></label>
+          <label><span id="finLbl">${emg ? "Término (si ya terminó)" : "Término planificado *"}</span><input type="datetime-local" name="finPlan" ${emg ? "" : "required"} value="${esc(o.finPlan || "")}"></label>
+        </div></div>
+      <div class="fs"><div class="lt">Ejecución</div>
+        <div class="grid2">
+          <label>Estado<select name="estado">${ESTADOS.map(([k, v]) => `<option value="${k}" ${k === o.estado ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+          <label>Avance (%)<input type="number" name="avance" min="0" max="100" step="5" value="${Number(o.avance) || 0}"></label>
+          <label>Inicio real<input type="datetime-local" name="inicioReal" value="${esc(o.inicioReal || "")}"></label>
+          <label>Término real<input type="datetime-local" name="finReal" value="${esc(o.finReal || "")}"></label>
+        </div>
+        <label>Notas (permisos, materiales, bloqueos, HH…)<textarea name="notas" rows="2">${esc(o.notas)}</textarea></label></div>
+      <div class="fs"><div class="lt">Recepción y pago</div>
+        <div class="grid2">
+          <label>Fecha recepción<input type="datetime-local" name="fechaRecepcion" value="${esc(o.fechaRecepcion || "")}"></label>
+          <label>Monto (CLP)<input type="number" name="monto" min="0" step="1" inputmode="numeric" value="${esc(o.monto || "")}" placeholder="Opcional"></label>
+          <label>Fecha de pago<input type="date" name="fechaPago" value="${esc(o.fechaPago || "")}"></label>
+          <label>N° estado de pago / factura / HES<input name="refPago" value="${esc(o.refPago || "")}" placeholder="Opcional"></label>
+        </div></div>
+      ${id ? `<div class="fs"><div class="lt">Bitácora</div>
+        <div class="row"><input id="logTxt" placeholder="Ej: brigada llegó 08:40, falta bloqueo eléctrico" style="flex:1"><button type="button" class="btn small go" id="logAdd">${ic("plus", "sm")}Agregar</button></div>
+        <div class="log">${(o.bitacora || []).slice().reverse().map(l => `<div><time>${esc(fdt(l.t))}</time>${esc(l.txt)}</div>`).join("") || '<span class="note">Sin registros.</span>'}</div></div>` : ""}
+    </div>
+    <div class="df">
+      ${id ? `<button type="button" class="btn small danger" id="delOT" aria-label="Eliminar">${ic("trash", "sm")}</button>
+        <button type="button" class="btn small" id="dupOT">${ic("copy", "sm")}Duplicar</button>
+        <a class="btn small" target="_blank" rel="noopener" href="${gcalURL(o)}">${ic("cal", "sm")}Google Cal.</a>
+        ${tel ? `<a class="btn small" target="_blank" rel="noopener" href="https://wa.me/${tel}?text=${encodeURIComponent(waText(o))}">${ic("msg", "sm")}WhatsApp</a>` : ""}` : ""}
+      <span class="spacer"></span>
+      <button class="btn" value="cancel" formnovalidate>Cancelar</button>
+      <button class="btn primary" value="save">Guardar</button>
+    </div>`;
+  f.dataset.id = id || "";
+  const dlg = document.getElementById("dlgOT");
+  dlg.showModal();
+  const ini = f.inicioPlan, fin = f.finPlan;
+  ini.addEventListener("change", () => { if (f.tipo.value === "emergencia") return; if (ini.value && (!fin.value || fin.value < ini.value)) { const d = D(ini.value); d.setHours(d.getHours() + 8); fin.value = toLocalInput(d); } });
+  f.tipo.addEventListener("change", () => {
+    const e = f.tipo.value === "emergencia";
+    f.numero.required = !e; fin.required = !e;
+    f.numero.placeholder = e ? "Se puede asignar después" : "";
+    document.getElementById("numLbl").textContent = e ? "N° OT (opcional)" : "N° OT *";
+    document.getElementById("iniLbl").textContent = e ? "Inicio *" : "Inicio planificado *";
+    document.getElementById("finLbl").textContent = e ? "Término (si ya terminó)" : "Término planificado *";
+    document.getElementById("planLt").textContent = e ? "Horario de la emergencia" : "Planificación";
+  });
+  if (id) {
+    const add = () => { const v = document.getElementById("logTxt").value.trim(); if (!v) return; o.bitacora = [...(o.bitacora || []), { t: toLocalInput(new Date()), txt: v }]; persist(); dlg.close(); openOT(id); renderAll(); };
+    document.getElementById("logAdd").onclick = add;
+    document.getElementById("logTxt").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); add(); } });
+    document.getElementById("delOT").onclick = () => { if (confirm(`¿Eliminar la OT ${o.numero}?`)) { S.ots = S.ots.filter(x => x.id !== id); dlg.close(); save(); toast("OT eliminada"); } };
+    document.getElementById("dupOT").onclick = () => { dlg.close(); openOT(null, { ...o, id: "", numero: o.numero + "-2", estado: "planificada", avance: 0, inicioReal: "", finReal: "", fechaRecepcion: "", fechaPago: "", refPago: "", monto: "", bitacora: [] }); };
+  }
+}
+document.getElementById("dlgOT").addEventListener("close", e => {
+  const dlg = e.target, f = document.getElementById("fOT");
+  if (dlg.returnValue !== "save") return;
+  const fd = Object.fromEntries(new FormData(f));
+  const id = f.dataset.id;
+  const nowS = toLocalInput(new Date());
+  if (fd.tipo === "emergencia") {
+    if (!fd.numero.trim()) fd.numero = nextEmgNum(fd.inicioPlan);
+    if (!fd.inicioReal) fd.inicioReal = fd.inicioPlan;
+    if (!fd.finPlan) fd.finPlan = fd.finReal || fd.inicioPlan;
+    if (fd.finPlan && !fd.finReal && !ACTIVA(fd.estado)) fd.finReal = fd.finPlan;
+  }
+  const dupe = S.ots.find(x => x.numero.trim() === fd.numero.trim() && x.id !== id);
+  if (dupe && !confirm(`Ya existe la OT ${fd.numero}. ¿Guardar de todas formas?`)) return;
+  if (fd.finPlan < fd.inicioPlan) { toast("El término era anterior al inicio; se ajustó."); fd.finPlan = fd.inicioPlan; }
+  fd.avance = Math.max(0, Math.min(100, Number(fd.avance) || 0));
+  fd.monto = fd.monto ? Math.max(0, Math.round(Number(fd.monto))) : "";
+  const prev = id ? otById(id).estado : null;
+  if (prev === "pagada" && fd.estado !== "pagada") fd.fechaPago = "";
+  else if (fd.fechaPago && fd.estado === "recepcionada") fd.estado = "pagada";
+  if (fd.estado !== "pagada") fd.fechaPago = "";
+  else if (!fd.fechaPago) fd.fechaPago = dayKey(new Date());
+  if (CERRADA(fd.estado) && !fd.fechaRecepcion) fd.fechaRecepcion = nowS;
+  if (id) {
+    const o = otById(id);
+    if (o.estado !== fd.estado) o.bitacora = [...(o.bitacora || []), { t: nowS, txt: `Estado: ${EST_LABEL[o.estado]} → ${EST_LABEL[fd.estado]}` }];
+    Object.assign(o, fd);
+  } else S.ots.push({ id: uid(), bitacora: [{ t: nowS, txt: fd.tipo === "emergencia" ? "Emergencia registrada" : "OT creada" }], ...fd });
+  save(); toast(fd.tipo === "emergencia" && !id ? "Emergencia registrada" : "OT guardada");
+});
+function nextEmgNum(ini) {
+  const d = D(ini) || new Date(), base = `EMG-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+  let n = 1; while (S.ots.some(o => o.numero === `${base}-${n}`)) n++;
+  return `${base}-${n}`;
+}
+function openEmg(day) {
+  const now = new Date();
+  let ini = now, estado = "ejecucion";
+  if (day && dayKey(day) !== dayKey(now)) { ini = new Date(day); ini.setHours(8, 0, 0, 0); if (day < now) estado = "terminada"; }
+  openOT(null, { tipo: "emergencia", estado, prioridad: "alta", inicioPlan: toLocalInput(ini), finPlan: "", brigadaId: calBrig || S.brigadas[0]?.id || "" });
+}
+function quick(id, to) {
+  const o = otById(id); if (!o) return;
+  if (to === "pagada") { openPago([id]); return; }
+  const now = toLocalInput(new Date());
+  let txt = `Estado: ${EST_LABEL[o.estado]} → ${EST_LABEL[to]}`;
+  if (to === "ejecucion" && !o.inicioReal) o.inicioReal = now;
+  if (to === "terminada") { o.finReal = now; o.avance = 100; if (isEmg(o) && D(o.finPlan) <= D(o.inicioPlan)) o.finPlan = now; }
+  if (to === "recepcionada") o.fechaRecepcion = now;
+  o.estado = to; o.bitacora = [...(o.bitacora || []), { t: now, txt }];
+  save(); toast(`OT ${o.numero}: ${EST_LABEL[to]}`);
+}
+function openBrig(id) {
+  const b = id ? brigById(id) : { nombre: "", empresa: "", supervisor: "", telefono: "", integrantes: "", notas: "", color: COLORS[S.brigadas.length % COLORS.length] };
+  const f = document.getElementById("fBrigForm");
+  f.dataset.id = id || "";
+  f.innerHTML = `<div class="dh"><h3>${id ? "Editar brigada" : "Nueva brigada"}</h3>${closeBtn}</div>
+    <div class="db"><div class="grid2">
+      <label>Nombre de la brigada *<input name="nombre" required value="${esc(b.nombre)}" placeholder="Ej: Brigada 3 Eléctrica"></label>
+      <label>Empresa contratista<input name="empresa" value="${esc(b.empresa)}"></label>
+      <label>Supervisor / capataz<input name="supervisor" value="${esc(b.supervisor)}"></label>
+      <label>Teléfono (con código país)<input name="telefono" type="tel" value="${esc(b.telefono)}" placeholder="+56 9 1234 5678"></label>
+      <label>N° integrantes<input name="integrantes" type="number" min="0" value="${esc(b.integrantes)}"></label>
+      <label>Color en calendario<input name="color" type="color" value="${esc(b.color)}" style="height:42px;padding:4px"></label>
+    </div>
+    <label>Notas (especialidad, turno, certificaciones…)<textarea name="notas" rows="2">${esc(b.notas)}</textarea></label></div>
+    <div class="df">${id ? `<button type="button" class="btn small danger" id="delBrig">${ic("trash", "sm")}Eliminar</button>` : ""}<span class="spacer"></span>
+      <button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="save">Guardar</button></div>`;
+  const dlg = document.getElementById("dlgBrig"); dlg.showModal();
+  if (id) document.getElementById("delBrig").onclick = () => {
+    const n = S.ots.filter(o => o.brigadaId === id).length;
+    if (confirm(`¿Eliminar ${b.nombre}?${n ? ` Sus ${n} OT quedarán sin brigada.` : ""}`)) {
+      S.brigadas = S.brigadas.filter(x => x.id !== id); S.ots.forEach(o => { if (o.brigadaId === id) o.brigadaId = ""; }); dlg.close(); save(); }
+  };
+}
+document.getElementById("dlgBrig").addEventListener("close", e => {
+  if (e.target.returnValue !== "save") return;
+  const f = document.getElementById("fBrigForm"), fd = Object.fromEntries(new FormData(f)), id = f.dataset.id;
+  if (id) Object.assign(brigById(id), fd); else S.brigadas.push({ id: uid(), ...fd });
+  save(); toast("Brigada guardada");
+});
+
+/* ======================= Calendario externo ======================= */
+const icsDate = s => { const d = D(s); return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`; };
+const icsEsc = s => String(s || "").replace(/\\/g, "\\\\").replace(/[,;]/g, m => "\\" + m).replace(/\r?\n/g, "\\n");
+const otTitle = o => `OT ${o.numero}${o.sector ? " · " + o.sector : ""}${brigById(o.brigadaId) ? " · " + brigById(o.brigadaId).nombre : ""}`;
+const otDetail = o => [o.descripcion, `Prioridad: ${o.prioridad || "-"}`, `Estado: ${EST_LABEL[o.estado]}`, o.notas].filter(Boolean).join("\n");
+function gcalURL(o) {
+  if (!o.inicioPlan || !o.finPlan) return "#";
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(otTitle(o)) +
+    "&dates=" + icsDate(o.inicioPlan) + "/" + icsDate(o.finPlan) + "&details=" + encodeURIComponent(otDetail(o)) + "&location=" + encodeURIComponent(o.sector || "");
+}
+function waText(o) {
+  return `Hola, recordatorio OT ${o.numero} (${o.descripcion || "sin descripción"}) en ${o.sector || "-"}. Plan: ${fdt(o.inicioPlan)} a ${fdt(o.finPlan)}. Estado: ${EST_LABEL[o.estado]}. Por favor confirmar avance.`;
+}
+function download(name, text, type) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function exportICS() {
+  const L = S.ots.filter(o => ACTIVA(o.estado) && o.inicioPlan && o.finPlan);
+  if (!L.length) return toast("No hay OT activas con fechas para exportar");
+  const stamp = icsDate(toLocalInput(new Date()));
+  const ev = L.map(o => ["BEGIN:VEVENT", `UID:${o.id}@asistente-inspector`, `DTSTAMP:${stamp}`, `DTSTART:${icsDate(o.inicioPlan)}`, `DTEND:${icsDate(o.finPlan)}`,
+    `SUMMARY:${icsEsc(otTitle(o))}`, `DESCRIPTION:${icsEsc(otDetail(o))}`, `LOCATION:${icsEsc(o.sector)}`,
+    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${icsEsc("Mañana inicia " + otTitle(o))}`, "TRIGGER:-P1D", "END:VALARM",
+    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${icsEsc("Por vencer " + otTitle(o))}`, `TRIGGER;RELATED=END:-PT${S.ajustes.horasVence}H`, "END:VALARM",
+    "END:VEVENT"].join("\r\n"));
+  download(`OT-activas-${dayKey(new Date())}.ics`, ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Asistente Inspector//ES", "CALSCALE:GREGORIAN", ...ev, "END:VCALENDAR"].join("\r\n"), "text/calendar");
+  toast(`${L.length} OT exportadas al calendario`);
+}
+
+/* ======================= CSV ======================= */
+const COLS = ["OT", "Tipo", "Descripcion", "Sector", "Brigada", "Empresa", "Prioridad", "Estado", "Inicio plan", "Termino plan", "Inicio real", "Termino real", "Avance %", "Fecha recepcion", "Fecha pago", "Ref pago", "Monto", "Notas"];
+function exportCSV() {
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`, f = s => s ? s.replace("T", " ") : "";
+  const rows = S.ots.map(o => { const b = brigById(o.brigadaId);
+    return [o.numero, isEmg(o) ? "Emergencia" : "Programada", o.descripcion, o.sector, b?.nombre, b?.empresa, o.prioridad, EST_LABEL[o.estado], f(o.inicioPlan), f(o.finPlan), f(o.inicioReal), f(o.finReal), o.avance, f(o.fechaRecepcion), o.fechaPago, o.refPago, o.monto, o.notas].map(q).join(";"); });
+  download(`OT-${dayKey(new Date())}.csv`, "﻿" + [COLS.map(q).join(";"), ...rows].join("\r\n"), "text/csv;charset=utf-8");
+}
+function parseCSV(text) {
+  text = text.replace(/^﻿/, "");
+  const first = text.split(/\r?\n/)[0] || "";
+  const delim = first.includes("\t") ? "\t" : (first.split(";").length >= first.split(",").length ? ";" : ",");
+  const rows = []; let row = [], cur = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"' && text[i + 1] === '"') { cur += '"'; i++; } else if (c === '"') q = false; else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === delim) { row.push(cur); cur = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
+    else cur += c;
+  }
+  if (cur || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim()));
+}
+function parseDate(s, endOfDay) {
+  s = String(s || "").trim(); if (!s) return "";
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if (m) return `${m[1]}-${pad(m[2])}-${pad(m[3])}T${m[4] ? pad(m[4]) + ":" + m[5] : endOfDay ? "18:00" : "08:00"}`;
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if (m) { const y = m[3].length === 2 ? "20" + m[3] : m[3]; return `${y}-${pad(m[2])}-${pad(m[1])}T${m[4] ? pad(m[4]) + ":" + m[5] : endOfDay ? "18:00" : "08:00"}`; }
+  return "";
+}
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9%]/g, "");
+const ALIAS = {
+  numero: ["ot", "not", "nºot", "numero", "numeroot", "orden", "ordendetrabajo"],
+  descripcion: ["descripcion", "trabajo", "detalle", "tarea", "texto", "textobreve"],
+  sector: ["sector", "area", "ubicacion", "ubicaciontecnica", "lugar", "planta", "equipo"],
+  brigada: ["brigada", "cuadrilla", "grupo", "contratista"],
+  empresa: ["empresa", "empresacontratista"],
+  prioridad: ["prioridad"], estado: ["estado", "status"],
+  inicioPlan: ["inicio", "inicioplan", "fechainicio", "iniplan", "inicioprogramado", "fechainicioplan", "desde"],
+  finPlan: ["termino", "terminoplan", "fin", "finplan", "fechatermino", "fechafin", "hasta", "fechaterminoplan", "terminoprogramado"],
+  inicioReal: ["inicioreal"], finReal: ["terminoreal", "finreal"], avance: ["avance", "avance%", "%avance"], notas: ["notas", "observaciones", "obs", "comentarios"],
+  tipo: ["tipo", "tipotrabajo", "clase"], fechaRecepcion: ["fecharecepcion", "recepcion"], fechaPago: ["fechapago", "pago", "pagado"],
+  refPago: ["refpago", "ref", "estadodepago", "ep", "factura", "hes", "referencia"], monto: ["monto", "valor", "total", "montoclp", "precio"]
+};
+function importRows(rows) {
+  if (rows.length < 2) return { n: 0, err: "Se necesita una fila de encabezados y al menos una OT." };
+  const head = rows[0].map(norm), map = {};
+  for (const [k, al] of Object.entries(ALIAS)) { const i = head.findIndex(h => al.map(norm).includes(h)); if (i >= 0) map[k] = i; }
+  if (map.numero === undefined) return { n: 0, err: "No encontré la columna de N° de OT (encabezado “OT”)." };
+  const estMap = s => { const n = norm(s); return n.startsWith("ejec") || n.startsWith("enejec") || n.startsWith("curso") ? "ejecucion" : n.startsWith("deten") ? "detenida" : n.startsWith("termin") ? "terminada" : n.startsWith("recep") || n.startsWith("cerr") ? "recepcionada" : n.startsWith("pag") ? "pagada" : "planificada"; };
+  let nuevas = 0, act = 0;
+  for (const r of rows.slice(1)) {
+    const g = k => map[k] !== undefined ? (r[map[k]] || "").trim() : "";
+    const numero = g("numero"); if (!numero) continue;
+    let brigadaId = "";
+    const bn = g("brigada");
+    if (bn) { let b = S.brigadas.find(x => norm(x.nombre) === norm(bn));
+      if (!b) { b = { id: uid(), nombre: bn, empresa: g("empresa"), supervisor: "", telefono: "", integrantes: "", notas: "", color: COLORS[S.brigadas.length % COLORS.length] }; S.brigadas.push(b); }
+      brigadaId = b.id; }
+    const data = { numero, descripcion: g("descripcion"), sector: g("sector"), prioridad: (["alta", "media", "baja"].find(p => norm(g("prioridad")).startsWith(p)) || "media"),
+      estado: g("estado") ? estMap(g("estado")) : "planificada", inicioPlan: parseDate(g("inicioPlan")), finPlan: parseDate(g("finPlan"), true),
+      inicioReal: parseDate(g("inicioReal")), finReal: parseDate(g("finReal"), true), avance: parseInt(g("avance")) || 0, notas: g("notas"),
+      tipo: norm(g("tipo")).startsWith("emerg") ? "emergencia" : g("tipo") ? "programada" : "",
+      fechaRecepcion: parseDate(g("fechaRecepcion"), true), fechaPago: parseDate(g("fechaPago")).slice(0, 10), refPago: g("refPago"),
+      monto: g("monto") ? (Number(g("monto").replace(/[^\d,]/g, "").replace(",", ".")) || "") : "" };
+    if (data.fechaPago && (!g("estado") || data.estado === "recepcionada")) data.estado = "pagada";
+    if (!data.finPlan) data.finPlan = data.inicioPlan;
+    const ex = S.ots.find(o => o.numero.trim() === numero);
+    if (ex) { for (const k in data) if (data[k] !== "" && !(k === "avance" && !g("avance"))) ex[k] = data[k]; if (bn) ex.brigadaId = brigadaId; act++; }
+    else { if (!data.tipo) data.tipo = "programada"; S.ots.push({ id: uid(), brigadaId, bitacora: [{ t: toLocalInput(new Date()), txt: "Importada desde planilla" }], ...data }); nuevas++; }
+  }
+  return { n: nuevas + act, nuevas, act };
+}
+function openImport() {
+  const f = document.getElementById("fImport");
+  f.innerHTML = `<div class="dh"><h3>Importar OT<small>Desde Excel o CSV</small></h3>${closeBtn}</div>
+    <div class="db">
+    <p class="note" style="margin:0">Copia las filas desde Excel (con la fila de encabezados) y pégalas aquí, o elige un archivo CSV. Columnas reconocidas: <b>OT</b>, Descripción, Sector, Brigada, Empresa, Prioridad, Estado, Inicio, Término, Avance, Notas. Fechas como 25-11-2026 08:00 o 2026-11-25.</p>
+    <textarea id="impTxt" rows="8" style="font-family:var(--f-mono);font-size:.85rem" placeholder="OT	Descripción	Sector	Brigada	Inicio	Término&#10;450123	Cambio rodamiento bomba 3	Chancado	Brigada 1	25-11-2026 08:00	25-11-2026 17:00"></textarea>
+    <input type="file" id="impFile" accept=".csv,.txt,text/csv"></div>
+    <div class="df"><span class="spacer"></span><button class="btn" value="cancel" formnovalidate>Cancelar</button><button class="btn primary" value="save">${ic("up", "sm")}Importar</button></div>`;
+  document.getElementById("impFile").onchange = e => { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = () => { document.getElementById("impTxt").value = r.result; }; r.readAsText(file); };
+  document.getElementById("dlgImport").showModal();
+}
+document.getElementById("dlgImport").addEventListener("close", e => {
+  if (e.target.returnValue !== "save") return;
+  const res = importRows(parseCSV(document.getElementById("impTxt").value));
+  if (res.err) { toast(res.err); return; }
+  save(); toast(`${res.nuevas} OT nuevas, ${res.act} actualizadas`);
+});
+
+/* ======================= Notificaciones ======================= */
+function checkNotifs() {
+  const A = alertas();
+  const badge = document.getElementById("alertBadge");
+  const nBad = A.filter(a => a.sev === "bad").length;
+  badge.hidden = !nBad; badge.textContent = nBad;
+  const nPay = S.ots.filter(o => o.estado === "recepcionada").length, pb = document.getElementById("payBadge");
+  pb.hidden = !nPay; pb.textContent = nPay;
+  document.title = (nBad ? `(${nBad}) ` : "") + "Asistente Inspector";
+  if (!S.ajustes.notif || !("Notification" in window) || Notification.permission !== "granted") return;
+  const today = dayKey(new Date()); let changed = false;
+  for (const a of A) {
+    if (a.k === "recepcion" && a.sev === "info") continue;
+    const k = `${a.ot.id}|${a.key || a.k}|${today}`;
+    if (S.avisados[k]) continue;
+    S.avisados[k] = 1; changed = true;
+    try { new Notification(`OT ${a.ot.numero} · ${a.t}`, { body: `${a.ot.descripcion || ""}\n${a.ot.sector || ""} · ${a.who}`, tag: k }); } catch (e) {}
+  }
+  if (changed) { for (const k in S.avisados) if (!k.endsWith(today)) delete S.avisados[k]; persist(); }
+}
+
+/* ======================= Demo ======================= */
+function loadDemo() {
+  const t0 = startOfDay(new Date()), at = (d, h) => { const x = addDays(t0, d); x.setHours(h); return toLocalInput(x); };
+  const B = [["Brigada 1 Eléctrica", "Montajes Andes Ltda.", "Juan Pérez", "+56 9 1111 2222", 4],
+             ["Brigada 2 Mecánica", "Servicios Norte SpA", "Carla Rojas", "+56 9 3333 4444", 5],
+             ["Brigada 3 Instrumentación", "Montajes Andes Ltda.", "Luis Soto", "+56 9 5555 6666", 3]]
+    .map(([nombre, empresa, supervisor, telefono, integrantes], i) => ({ id: uid(), nombre, empresa, supervisor, telefono, integrantes, notas: "", color: COLORS[i] }));
+  const ot = (numero, descripcion, sector, bi, ini, fin, estado, prioridad, avance = 0, extra = {}) =>
+    ({ id: uid(), numero, descripcion, sector, brigadaId: B[bi].id, inicioPlan: ini, finPlan: fin, estado, prioridad, avance, notas: "", bitacora: [{ t: toLocalInput(new Date()), txt: "OT de ejemplo" }], inicioReal: estado !== "planificada" ? ini : "", finReal: "", ...extra });
+  S.brigadas = B;
+  S.ots = [
+    ot("4501230", "Cambio de rodamientos motor bomba P-301", "Planta Chancado", 1, at(-2, 8), at(-1, 18), "ejecucion", "alta", 70),
+    ot("4501231", "Mantención tablero CCM-02, reapriete y termografía", "Subestación 2", 0, at(0, 8), at(0, 17), "ejecucion", "media", 40),
+    ot("4501232", "Calibración transmisores de presión línea 2", "Flotación", 2, at(0, 9), at(1, 13), "planificada", "media"),
+    ot("4501233", "Reemplazo luminarias LED nave principal", "Taller Central", 0, at(1, 8), at(3, 17), "planificada", "baja"),
+    ot("4501234", "Alineamiento correa transportadora CV-05", "Planta Chancado", 1, at(0, 14), at(2, 12), "planificada", "alta"),
+    ot("4501235", "Cambio de válvula de control FV-210", "Flotación", 2, at(-3, 8), at(-2, 17), "terminada", "media", 100, { finReal: at(-2, 16) }),
+    ot("4501236", "Revisión malla a tierra y medición de resistencia", "Subestación 2", 0, at(4, 8), at(5, 17), "planificada", "media"),
+    ot("4501237", "Reparación filtración reductor molino", "Molienda", 1, at(-1, 8), at(1, 17), "detenida", "alta", 30, { bitacora: [{ t: at(-1, 11), txt: "Detenida: falta repuesto (sello) en bodega" }] }),
+    ot("EMG-1", "Falla eléctrica en alimentador correa CV-02, cambio de contactor", "Planta Chancado", 0, at(0, 6), at(0, 6), "ejecucion", "alta", 50, { tipo: "emergencia" }),
+    ot("EMG-2", "Rotura de cañería de agua de proceso", "Flotación", 1, at(-3, 22), at(-2, 2), "recepcionada", "alta", 100, { tipo: "emergencia", finReal: at(-2, 2), fechaRecepcion: at(-2, 10), monto: 850000 }),
+    ot("4501220", "Cambio de luminarias acceso norte", "Taller Central", 0, at(-10, 8), at(-9, 17), "recepcionada", "baja", 100, { fechaRecepcion: at(-8, 10), monto: 1250000 }),
+    ot("4501221", "Mantención preventiva bomba P-205", "Flotación", 2, at(-12, 8), at(-12, 17), "recepcionada", "media", 100, { fechaRecepcion: at(-11, 10), monto: 640000 }),
+    ot("4501210", "Termografía tableros sala eléctrica 1", "Subestación 2", 0, at(-20, 8), at(-20, 17), "pagada", "media", 100, { fechaRecepcion: at(-19, 10), fechaPago: dayKey(addDays(t0, -5)), refPago: "EP-11-01", monto: 980000 }),
+    ot("4501211", "Cambio de correa transportadora CV-01", "Planta Chancado", 1, at(-40, 8), at(-38, 17), "pagada", "alta", 100, { fechaRecepcion: at(-37, 10), fechaPago: dayKey(addDays(t0, -30)), refPago: "EP-10-03", monto: 3400000 }),
+  ];
+  S.ots.forEach(o => { o.tipo ||= "programada"; if (o.tipo === "emergencia") o.numero = nextEmgNum(o.inicioPlan); });
+  save(); toast("Datos de ejemplo cargados");
+}
+
+/* ======================= Navegación y eventos ======================= */
+let view = "hoy";
+function go(v) {
+  view = v;
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.view === v));
+  ["hoy", "ots", "cal", "brig", "pagos", "datos"].forEach(x => document.getElementById("v-" + x).hidden = x !== v);
+  renderAll(); window.scrollTo({ top: 0 });
+}
+function renderAll() {
+  fillFilters();
+  ({ hoy: renderHoy, ots: renderOTs, cal: renderCal, brig: renderBrig, pagos: renderPagos, datos: renderDatos })[view]();
+  checkNotifs();
+}
+document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("button[data-view]"); if (b) { if (b.dataset.view === "ots") otPreset = null; go(b.dataset.view); } });
+document.body.addEventListener("click", e => {
+  const t = e.target;
+  const q = t.closest("[data-quick]"); if (q) { e.stopPropagation(); quick(q.dataset.quick, q.dataset.to); return; }
+  if (t.closest("a") || t.closest(".chk")) return;
+  const em = t.closest("[data-emg]"); if (em) { openEmg(em.dataset.emg === "day" ? calSel : null); return; }
+  const card = t.closest("[data-ot]"); if (card) { openOT(card.dataset.ot); return; }
+  const kpi = t.closest("[data-filter]");
+  if (kpi && kpi.dataset.filter === "porpagar") { go("pagos"); return; }
+  if (kpi) { const f = kpi.dataset.filter; otPreset = null;
+    document.getElementById("fText").value = ""; document.getElementById("fBrig").value = ""; document.getElementById("fSector").value = ""; document.getElementById("fTipo").value = "";
+    if (["ejecucion", "terminada"].includes(f)) document.getElementById("fEstado").value = f;
+    else { document.getElementById("fEstado").value = ""; otPreset = f; }
+    go("ots"); return; }
+  if (t.closest("#clearPreset")) { otPreset = null; renderOTs(); return; }
+  const day = t.closest("[data-day]"); if (day) { const [y, m, d] = day.dataset.day.split("-").map(Number); calSel = new Date(y, m - 1, d); if (calSel.getMonth() !== calMonth.getMonth()) calMonth = new Date(y, m - 1, 1); renderCal(); return; }
+  const eb = t.closest("[data-editbrig]"); if (eb) { openBrig(eb.dataset.editbrig); return; }
+  const g = t.closest("[data-go]"); if (g) { go(g.dataset.go); if (g.dataset.go === "brig") openBrig(); return; }
+  const id = t.closest("button,label")?.id;
+  const act = {
+    demoBtn: loadDemo, addBrig: () => openBrig(), icsBtn: exportICS, csvBtn: exportCSV, impBtn: openImport,
+    payBulk: () => openPago([...paySel]), payClear: () => { paySel.clear(); renderPagos(); }, payCsv: exportPagos,
+    bakBtn: () => download(`respaldo-inspector-${dayKey(new Date())}.json`, JSON.stringify(S, null, 1), "application/json"),
+    wipeBtn: () => { if (confirm("¿Borrar TODAS las OT y brigadas de este navegador? Descarga un respaldo antes si lo necesitas.")) { S = blank(); save(); toast("Datos borrados"); } },
+    notifBtn: async () => {
+      if (!("Notification" in window)) return;
+      if (S.ajustes.notif && Notification.permission === "granted") { S.ajustes.notif = false; save(); return; }
+      const p = await Notification.requestPermission();
+      S.ajustes.notif = p === "granted"; save();
+      toast(p === "granted" ? "Avisos activados" : "El navegador bloqueó los avisos; habilítalos en la configuración del sitio");
+    },
+    testNotif: () => { if ("Notification" in window && Notification.permission === "granted") new Notification("Asistente Inspector", { body: "Así se verán los avisos de tus OT." }); else toast("Primero activa los avisos"); },
+  }[id];
+  if (act) act();
+});
+document.body.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-ot][role=button]")) { e.preventDefault(); openOT(e.target.dataset.ot); } });
+document.body.addEventListener("change", e => {
+  const id = e.target.id;
+  if (["ajH", "ajD", "ajR"].includes(id)) {
+    S.ajustes.horasVence = Math.max(1, +document.getElementById("ajH").value || 24);
+    S.ajustes.diasInicio = Math.max(0, +document.getElementById("ajD").value || 0);
+    S.ajustes.diasRecepcion = Math.max(0, +document.getElementById("ajR").value || 0);
+    persist(); checkNotifs(); toast("Ajustes guardados");
+  }
+  if (id === "restFile") {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = () => { try { const d = JSON.parse(r.result); if (!Array.isArray(d.ots) || !Array.isArray(d.brigadas)) throw 0;
+      if (!confirm(`¿Restaurar ${d.ots.length} OT y ${d.brigadas.length} brigadas? Reemplaza los datos actuales.`)) return;
+      S = { ...blank(), ...d, ajustes: { ...DEF_AJUSTES, ...(d.ajustes || {}) } }; save(); toast("Respaldo restaurado"); }
+      catch (err) { toast("Archivo de respaldo no válido"); } };
+    r.readAsText(file);
+  }
+  if (["fEstado", "fBrig", "fSector", "fTipo"].includes(id)) renderOTs();
+  if (e.target.classList.contains("psel")) { e.target.checked ? paySel.add(e.target.dataset.id) : paySel.delete(e.target.dataset.id); renderPagos(); }
+  if (id === "pselAll") { const ids = S.ots.filter(o => o.estado === "recepcionada" && (!payBrig || o.brigadaId === payBrig)).map(o => o.id); paySel.clear(); if (e.target.checked) ids.forEach(x => paySel.add(x)); renderPagos(); }
+  if (id === "pBrig") { payBrig = e.target.value; paySel.clear(); renderPagos(); }
+  if (id === "pMes") { payMes = e.target.value; renderPagos(); }
+  if (id === "calBrig") { calBrig = e.target.value; renderCal(); }
+});
+document.getElementById("fText").addEventListener("input", renderOTs);
+document.getElementById("fab").addEventListener("click", () => {
+  const preset = {};
+  if (view === "cal") { const s = new Date(calSel); s.setHours(8); const f = new Date(calSel); f.setHours(17); preset.inicioPlan = toLocalInput(s); preset.finPlan = toLocalInput(f); }
+  if (view === "cal" && calBrig) preset.brigadaId = calBrig;
+  openOT(null, preset);
+});
+document.getElementById("calPrev").innerHTML = ic("left", "sm");
+document.getElementById("calNext").innerHTML = ic("right", "sm");
+document.getElementById("calPrev").onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); renderCal(); };
+document.getElementById("calNext").onclick = () => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); renderCal(); };
+document.getElementById("calToday").onclick = () => { calSel = startOfDay(new Date()); calMonth = new Date(calSel.getFullYear(), calSel.getMonth(), 1); renderCal(); };
+// Tema
+const themes = ["auto", "light", "dark"], themeIc = { auto: "auto", light: "sun", dark: "moon" };
+function setTheme(t) {
+  if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.dataset.theme = t;
+  document.getElementById("themeBtn").innerHTML = ic(themeIc[t]);
+  try { localStorage.setItem(KEY + "-theme", t); } catch (e) {}
+}
+let savedTheme = "auto"; try { savedTheme = localStorage.getItem(KEY + "-theme") || "auto"; } catch (e) {}
+setTheme(themes.includes(savedTheme) ? savedTheme : "auto");
+document.getElementById("themeBtn").onclick = () => { const cur = document.documentElement.dataset.theme || "auto"; const nx = themes[(themes.indexOf(cur) + 1) % 3]; setTheme(nx); toast("Tema " + { auto: "automático", light: "claro", dark: "oscuro" }[nx]); };
+// Reloj y verificación periódica
+function tick() { document.getElementById("clock").textContent = fmtHM.format(new Date()); }
+hydrateIcons();
+tick();
+setInterval(() => { tick(); if (!document.querySelector("dialog[open]") && view === "hoy") renderHoy(); checkNotifs(); }, 60000);
+renderAll();
+</script>
+</body>
+</html>
